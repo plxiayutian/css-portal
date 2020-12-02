@@ -1,0 +1,116 @@
+/*	
+	created by penglei
+	2020/11/12
+	展示页面scss样式
+*/
+
+/*
+	定义页面色调
+*/
+//主题色调
+$main-color: #275AE3;
+//第一辅色
+$first-color: #409EFF;
+//第二辅色
+$second-color: #79BBFF;
+
+//第二主题色调
+$main-color1: #FF0000;
+//第一辅色
+$first-color1: #FF6A6A;
+//第二辅色
+$second-color1: #FFA8A8;
+
+/*
+	定义背景
+*/
+//背景色
+$bg-color: #FFFFFF;
+//第一背景辅色
+$bg-color1: #F9F9F9;
+//第二背景辅色
+$bg-color2: #DBDDE3;
+
+/*
+	定义边框
+*/
+//边框颜色
+$border-color: #DFDFDF;
+$border-color1: #CCCCCC;
+
+/*
+	定义字体
+*/
+//主要字体颜色
+$font-color: #333333;
+$font-color1: #ffffff;
+$font-color2: #666666;
+$font-color3: #999999;
+$hoverColor:#FF0000;
+//字体大小
+$font-size-main: 16px;
+ //字体调整的差量
+$size: 0;                    
+$size1: 2px;
+$size2: 4px;
+$size3: 6px;
+
+/* 
+	创建的页面变量
+*/
+//边距宽度
+$padding-width: 10px;
+//页面主体区域宽度
+$page-width: 1200px;
+
+// CSS Module 有一个:export关键字，它在功能上等同于 ES6 的关键字export，即导出一个 js 对象。
+:export {
+	name: "scss"; 
+	//页面色调
+	mainColor: $main-color;
+	firstColor: $first-color;
+	secondColor: $second-color;
+	//第二主题色调
+	mainColor1: $main-color1;
+	firstColor1: $first-color1;
+	secondColor1: $second-color1;
+	//背景
+	bgColor: $bg-color;
+	bgColor1: $bg-color1;
+	bgColor2: $bg-color2;
+	//边框
+	borderColor: $border-color;
+	//字体
+	fontColor: $font-color;
+	fontColor1: $font-color1;
+	fontColor2: $font-color2;
+	fontColor3: $font-color3;
+	fontSize: $font-size-main;
+	//字体调整的差量
+	size: $size;
+	size1: $size1;
+	size2: $size2;
+	size3: $size3;
+	//边距
+	paddingWidth: $padding-width;
+	//页面主体区域宽度
+	pageidth: $page-width;
+}
+
+:root {
+	//主色调
+    --color-primary: $first-color;  //--color-primary:变量名，css3有规则
+	//字号
+	--font-size-main: font-size-main;
+}
+
+//利用scss的函数,以符合scss语法
+@function color($color-name) {
+  @return var(--color-#{$color-name});
+}
+
+/* 改变主题色变量 */
+$--color-primary: $first-color; //color(primary)
+/* 改变 icon 字体路径变量，必需 */
+$--font-path: '~element-ui/lib/theme-chalk/fonts';
+@import "~element-ui/packages/theme-chalk/src/index";
