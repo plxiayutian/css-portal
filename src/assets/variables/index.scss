@@ -1,0 +1,104 @@
+/*	
+	created by penglei
+	2020/11/12
+	展示页面scss样式
+*/
+
+// 引入合并样式
+@import "./mixin.scss";
+
+.sass-fontsize{
+	@include addFontSize($font-size-main);
+}
+.sass-fontsize-title1{
+	@include addFontSize($font-size-main);
+}
+.sass-fontsize-title2{
+	@include addFontSize($font-size-main);
+}
+.sass-fontsize-title3{
+	@include addFontSize($font-size-main);
+}
+
+html{
+	//页面字体大小
+	// @include addFontSize($font-size-main);
+}
+
+/*重置滚动条*/
+// 谷歌浏览器写法，webkit内核浏览器
+::-webkit-scrollbar{
+	height: 8px;
+	width: 8px;
+} 
+::-webkit-scrollbar-thumb{
+	border-radius: 5px;
+	-webkit-box-shadow: inset 0 0 5px rgba(0,0,0, 0.2);
+	background: rgba(0,0,0, 0.2);
+	height: 2px;
+	// background-color: $first-color;
+	@include changeBackgroundColor($main-color)
+}
+::-webkit-scrollbar-track{
+	-webkit-box-shadow: inset 0 0 5px rgba(0,0,0, 0.2);
+	background: rgba(0,0,0, 0.1);
+	border-radius: 0;
+}
+// IE浏览器
+*{
+	scrollbar{
+		height: 8px;
+		width: 8px;
+	} 
+	scrollbar-thumb{
+		border-radius: 5px;
+		-webkit-box-shadow: inset 0 0 5px rgba(0,0,0, 0.2);
+		background: rgba(0,0,0, 0.2);
+		height: 2px;
+		// background-color: $first-color;
+		@include changeBackgroundColor($main-color)
+	}
+	scrollbar-track{
+		-webkit-box-shadow: inset 0 0 5px rgba(0,0,0, 0.2);
+		background: rgba(0,0,0, 0.1);
+		border-radius: 0;
+	}
+}
+
+/* 多余文本... */
+.text-ellipsis{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space: nowrap;
+}
+
+.text-ellipsis-2{
+  overflow:hidden;
+  display:-webkit-box;
+  text-overflow:ellipsis;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient:vertical;
+}
+
+// *****************************修改element样式*****************************//
+
+.module-main {
+	margin: $padding-width;
+	height: -moz-calc(100% - #{$padding-width} * 2);
+	height: -webkit-calc(100% - #{$padding-width} * 2);
+	height: calc(100% - #{$padding-width} * 2);
+	
+	// 卡片
+	.el-card {
+		height: 100%;
+		border-radius: 10px;
+		
+		.el-card__header{
+			padding: $padding-width;
+		}
+		
+		.el-card__body {
+			padding: $padding-width;
+		}
+	}
+}
