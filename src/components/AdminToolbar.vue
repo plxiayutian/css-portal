@@ -489,7 +489,6 @@
 		/* 页面名称 */
 		.now-page-name {
 			display: inline-block;
-			min-width: 100px;
 			cursor: pointer;
 			margin-left: 20px;
 		}
@@ -516,7 +515,7 @@
 		font-size: 20px;
 	}
 
-	/* 我也页面弹出框 */
+	/* 我的页面弹出框 */
 	.dialogWrap {
 		height: 300px;
 		overflow: auto;
@@ -527,13 +526,18 @@
 		}
 
 		.pageTitle {
-			width: 180px;
+			width: 320px;
+			
+			>span {
+				margin-right: 5px;
+			}
 		}
 
 		.pageStatus {
 			width: 70px;
 			text-align: center;
 			margin-left: 0;
+			margin-right: 10px;
 		}
 
 		.noActive {
@@ -550,10 +554,10 @@
 			color: red;
 			vertical-align: middle;
 		}
-	}
 
-	.el-button {
-		margin-left: 20px;
+		.el-button {
+			margin-left: 20px;
+		}
 	}
 
 	.moduleItem {
