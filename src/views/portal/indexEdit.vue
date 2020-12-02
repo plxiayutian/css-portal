@@ -3,7 +3,7 @@
 	 element-loading-background="rgba(0, 0, 0, 0.8)" id="appEdit" @mouseup.native="closeModuleMouseMove">
 		<el-header>
 			<!-- 使用工具栏 -->
-			<Toolbar @initPage='initPage' :pageData="pageData"></Toolbar>
+			<Toolbar @initPage='initPage' :pageData="pageData" :isAddModule.sync="isAddModule"></Toolbar>
 		</el-header>
 		<el-container class="page-content">
 			<el-main class="page-main">
@@ -32,9 +32,8 @@
 								</div>
 								<component :is="item.draggableElement.draggableElementType" :moduleId="item.draggableElement.draggableModuleId"></component>
 								<div class="module_tools">
-									<span v-if="item.isLocked=='1'" class="el-icon-lock" @click="changeModuleLock(item,index)" title="解除模块锁定"></span>
-									<span v-else class="el-icon-unlock" @click="changeModuleLock(item,index)" title="锁定模块"></span>
-									<span class="el-icon-close" @click="deleteResource(item)" title="删除资源"></span>
+									<span v-if="item.isLocked=='1'" class="el-icon-lock" title="锁定模块" @click="moduleLockedTips"></span>
+									<span v-else class="el-icon-close" @click="deleteResource(item)" title="删除资源"></span>
 								</div>
 							</div>
 						</div>
@@ -58,10 +57,6 @@
 								<div class="module_name_wrap">
 									<span :id="'isTextModuleName_'+ item.id" class="module_name_text">{{ item.moduleName }}</span>
 								</div>
-								<div class="module_tools">
-									<span v-if="item.isLocked=='1'" class="el-icon-lock" @click="changeModuleLock(item,index)" title="解除模块锁定"></span>
-									<span v-else class="el-icon-unlock" @click="changeModuleLock(item,index)" title="锁定模块"></span>
-								</div>
 							</draggable>
 						</div>
 					</template>
@@ -76,49 +71,6 @@
 					<i :class="aside.btnIcon"></i>
 				</div>
 				<div :class="['aside-content', { show: aside.isOpen }]">
-					<el-card class="box-card">
-						<div slot="header" class="clearfix">
-							<span>页面设置</span>
-						</div>
-						<!-- 页面设置组件 -->
-						<PageSetup :pageData="pageData"></PageSetup>
-					</el-card>
-					<el-card class="box-card">
-						<div slot="header" class="clearfix div-column">
-							<span>布局</span>
-							<el-button :class="['add-module', isAddModule?'el-icon-close':'el-icon-plus']" size="mini" circle
-							 @click.stop.prevent="addModule" :title=" isAddModule?'取消':'添加模块'"></el-button>
-						</div>
-						<ul class="module-list">
-							<li v-for="(item, index) in pageData.arrModule" :key="'module'+index">
-								<el-row class="div-column">
-									<el-col :span="20" class="module-name" :title="item.moduleName||''">
-										<!-- Enter键保存： -->
-										<el-input v-if="item.isEdit" class="inline-input moduleName" size="mini" v-model="item.moduleName"
-										 placeholder="请输入模块名称" @keyup.enter.native="enterModuleName" @blur.stop="blurModuleName(item,index)"></el-input>
-										<div v-else class="text-ellipsis" @click.stop="handleModuleName(index)">{{item.moduleName || ""}}</div>
-									</el-col>
-									<el-col :span="4" class="module-icon">
-										<el-popconfirm title="请确认是否删除？" @confirm="delModule(item)">
-											<i class="el-icon-delete" slot="reference"></i>
-										</el-popconfirm>
-									</el-col>
-								</el-row>
-								<ul class="module-content" v-if="item.resourceEntity && item.resourceEntity.id">
-									<li>
-										<el-row class="div-column">
-											<el-col :span="20" class="module-name text-ellipsis" :title="item.resourceEntity.name||''">{{item.resourceEntity.name || ""}}</el-col>
-											<el-col :span="4" class="module-icon">
-												<el-popconfirm title="请确认是否删除？" @confirm="delResource(item.moduleId)">
-													<i class="el-icon-delete" slot="reference"></i>
-												</el-popconfirm>
-											</el-col>
-										</el-row>
-									</li>
-								</ul>
-							</li>
-						</ul>
-					</el-card>
 					<el-card class="box-card">
 						<div slot="header" class="clearfix resource-search">
 							<p>
@@ -421,34 +373,6 @@
 						}
 					})
 			},
-			//添加模块
-			addModule(e) {
-				if (this.isAddModule) {
-					this.isAddModule = false
-				} else {
-					//鼠标十字瞄准
-					this.isAddModule = true
-				}
-			},
-			//点击修改模块名称
-			handleModuleName(index) {
-				this.$set(this.pageData.arrModule[index], "isEdit", true)
-			},
-			//Enter键控制失去焦点走保存事件
-			enterModuleName(e) {
-				//事件兼容写法
-				let event = e || window.event;
-				let target = event.target || event.srcElement;
-				if (target && target.blur) {
-					target.blur() //控制输入框失去焦点
-				}
-			},
-			//模块名称输入框失去焦点事件
-			blurModuleName(item, index) {
-				this.$set(this.pageData.arrModule[index], "isEdit", false)
-				//保存模块名称修改
-				this.handleSaveModuleName(item)
-			},
 			//保存模块名称修改
 			handleSaveModuleName(item) {
 				if (item.moduleId) {
@@ -532,81 +456,6 @@
 							this.fetchModuleData(this.pageId, false)
 						})
 					})
-			},
-			// 删除模块
-			delModule(item) {
-				if (item.isLocked == "1") {
-					this.$message({
-						type: "warning",
-						message: "锁定模块不可删除！",
-					})
-					return false
-				}
-				this.fullscreenLoading = true
-				this.loadingName = "删除模块中，请稍后..."
-				this.axios({
-					method: "delete",
-					url: "/portal/api/modules/" + item.moduleId,
-				}).then((res) => {
-					if (res.data) {
-						this.$message({
-							type: "success",
-							message: "删除模块成功！",
-						})
-						// 页面上删除模块
-						if (item.resourceId) {
-							// 有资源
-							this.showModuleArr.map((list, index) => {
-								if (list.id == item.moduleId) {
-									this.showModuleArr.splice(index, 1)
-								}
-							})
-						} else {
-							// 无资源
-							this.editModuleArr.map((list, index) => {
-								if (list.id == item.moduleId) {
-									this.editModuleArr.splice(index, 1)
-								}
-							})
-						}
-						this.fullscreenLoading = false
-						//重新获取右侧模块面板数据
-						this.fetchModuleData(this.pageId, false)
-					} else {
-						this.$message({
-							type: "error",
-							message: "删除模块失败！",
-						})
-					}
-				})
-			},
-			// 删除模块下挂载的资源
-			delResource(moduleId) {
-				this.axios({
-					method: "delete",
-					url: "/portal/api/modules/module/resource/" + moduleId,
-				}).then((res) => {
-					if (res.data) {
-						this.$message({
-							type: "success",
-							message: "删除资源成功！",
-						})
-						// 页面上删除模块上资源
-						this.showModuleArr.map((item, index) => {
-							if (item.id == moduleId) {
-								this.editModuleArr.push(this.showModuleArr[index])
-								this.showModuleArr.splice(index, 1)
-							}
-						})
-						//获取模块数据
-						this.fetchModuleData(this.pageId, false)
-					} else {
-						this.$message({
-							type: "error",
-							message: "删除资源失败！",
-						})
-					}
-				})
 			},
 			// 获取资源列表数据
 			fetchResource() {
@@ -760,6 +609,13 @@
 					})
 				}
 			},
+			//锁定模块不可操作提示
+			moduleLockedTips() {
+				this.$message({
+					type: "warning",
+					message: "锁定模块不可操作",
+				})
+			},
 			// 删除资源
 			deleteResource(item) {
 				// if (item.isLocked == "1") {
@@ -839,7 +695,6 @@
 				}
 			}
 		},
-		created: function() {},
 		mounted: function() {
 			//获取数据字典项
 			this.fetchDict()
@@ -849,7 +704,7 @@
 			if (this.editingPage) {
 				this.initPage()
 			}
-		},
+		}
 	}
 </script>
 

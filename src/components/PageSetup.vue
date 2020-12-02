@@ -242,15 +242,12 @@
 
 <style lang="scss" scoped>
 	.el-form {
-		/deep/ .el-form-item__label {
+
+		/deep/ .el-form-item__label{
 			color: inherit;
 		}
 
-		/deep/ .el-form-item:not(:last-child) {
-			margin-bottom: 10px;
-		}
-
-		/deep/ .el-form-item:last-child {
+		/deep/ .el-form-item {
 			margin-bottom: 0;
 		}
 	}

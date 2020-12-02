@@ -4,6 +4,12 @@
 		<p class="now-page-name" @click="savePageDia = true" :title="pageName">{{pageName}}</p>
 		<!-- 页面设置组件 -->
 		<PageSetup :pageData="pageData"></PageSetup>
+		<el-form label-width="80px" style="margin-left: 20px;">
+			<el-form-item label="新增模块">
+				<el-button :class="['add-module', isAddModule?'el-icon-close':'el-icon-plus']" size="mini" circle
+				 @click.stop.prevent="addModule" :title="isAddModule?'取消':'添加模块'"></el-button>
+			</el-form-item>
+		</el-form>
 		<div id="toolBox">
 			<!-- 模板来源Id不存在的时候，没有一键还原按钮 -->
 			<div class="toolItem" v-for="(item, index) in bars" :key="index" v-if="!(item.btn=='restore' && !templateId)" @click="item.clickAffair(item.name)">
@@ -85,7 +91,13 @@
 <script>
 	export default {
 		name: "ToolBar",
-		props: ['pageData'],
+		props: {
+			//页面数据
+			pageData: Object,
+			//是否新增模块
+			isAddModule: Boolean
+		},
+		// props: ['pageData', 'isAddModule'], //pageData：页面数据、isAddModule：是否新增模块
 		data() {
 			return {
 				bars: [{
@@ -483,6 +495,16 @@
 						console.log(err)
 					})
 			},
+			//添加模块
+			addModule(e) {
+				// 修改父组件的变量值
+				if (this.isAddModule) {
+					this.$emit('update:isAddModule',false)
+				} else {
+					//鼠标十字瞄准
+					this.$emit('update:isAddModule',true)
+				}
+			},
 		},
 	}
 </script>
@@ -498,18 +520,17 @@
 		/* 页面名称 */
 		.now-page-name {
 			display: inline-block;
-			min-width: 100px;
 			cursor: pointer;
 			margin-left: 20px;
 		}
 
 		/* 页面设置部分 */
-		/deep/ .el-form {
+		/deep/>.el-form {
 			display: inline-block;
 
 			/deep/ .el-form-item {
 				display: inline-block;
-				margin-bottom: 0
+				margin-bottom: 0 !important
 			}
 		}
 
@@ -535,7 +556,7 @@
 		font-size: 20px;
 	}
 
-	/* 我也页面弹出框 */
+	/* 我的页面弹出框 */
 	.dialogWrap {
 		height: 300px;
 		overflow: auto;
@@ -546,13 +567,18 @@
 		}
 
 		.pageTitle {
-			width: 180px;
+			width: 320px;
+
+			>span {
+				margin-right: 5px;
+			}
 		}
 
 		.pageStatus {
 			width: 70px;
 			text-align: center;
 			margin-left: 0;
+			margin-right: 10px;
 		}
 
 		.noActive {
@@ -569,10 +595,10 @@
 			color: red;
 			vertical-align: middle;
 		}
-	}
 
-	.el-button {
-		margin-left: 20px;
+		.el-button {
+			margin-left: 20px;
+		}
 	}
 
 	.moduleItem {
