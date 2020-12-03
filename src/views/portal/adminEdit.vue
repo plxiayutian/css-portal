@@ -34,7 +34,12 @@
 								<div class="module_tools">
 									<span v-if="item.isLocked=='1'" class="el-icon-lock" @click="changeModuleLock(item,index)" title="解除模块锁定"></span>
 									<span v-else class="el-icon-unlock" @click="changeModuleLock(item,index)" title="锁定模块"></span>
-									<span class="el-icon-close" @click="deleteResource(item)" title="删除资源"></span>
+									<el-popconfirm v-if="item.draggableElement.draggableResourceId" title="请确认是否删除资源？" @confirm="deleteResource(item)">
+										<span class="el-icon-close" title="删除资源" slot="reference"></span>
+									</el-popconfirm>
+									<el-popconfirm title="请确认是否删除模块？" @confirm="delModule(item,isModule=1)">
+										<span class="el-icon-delete" title="删除模块" slot="reference"></span>
+									</el-popconfirm>
 								</div>
 							</div>
 						</div>
@@ -61,6 +66,9 @@
 								<div class="module_tools">
 									<span v-if="item.isLocked=='1'" class="el-icon-lock" @click="changeModuleLock(item,index)" title="解除模块锁定"></span>
 									<span v-else class="el-icon-unlock" @click="changeModuleLock(item,index)" title="锁定模块"></span>
+									<el-popconfirm title="请确认是否删除模块？" @confirm="delModule(item,isModule=1)">
+										<span class="el-icon-delete" title="删除模块" slot="reference"></span>
+									</el-popconfirm>
 								</div>
 							</draggable>
 						</div>
@@ -81,7 +89,7 @@
 							<span>页面设置</span>
 						</div>
 						<!-- 页面设置组件 -->
-						<PageSetup :pageData="pageData"></PageSetup>
+						<PageSetup :pageData="pageData" :grid="grid"></PageSetup>
 					</el-card>
 					<el-card class="box-card">
 						<div slot="header" class="clearfix div-column">
@@ -534,13 +542,17 @@
 					})
 			},
 			// 删除模块
-			delModule(item) {
+			delModule(item, isModule) {
 				if (item.isLocked == "1") {
 					this.$message({
 						type: "warning",
 						message: "锁定模块不可删除！",
 					})
 					return false
+				}
+				//当前操作的是模块
+				if (isModule) {
+					item.moduleId = item.id
 				}
 				this.fullscreenLoading = true
 				this.loadingName = "删除模块中，请稍后..."
@@ -554,15 +566,13 @@
 							message: "删除模块成功！",
 						})
 						// 页面上删除模块
-						if (item.resourceId) {
-							// 有资源
-							this.showModuleArr.map((list, index) => {
-								if (list.id == item.moduleId) {
-									this.showModuleArr.splice(index, 1)
-								}
-							})
-						} else {
-							// 无资源
+						this.showModuleArr.map((list, index) => {
+							if (list.id == item.moduleId) {
+								this.showModuleArr.splice(index, 1)
+							}
+						})
+						// 无资源
+						if (!item.portalResourceId) {
 							this.editModuleArr.map((list, index) => {
 								if (list.id == item.moduleId) {
 									this.editModuleArr.splice(index, 1)
@@ -768,20 +778,9 @@
 				// 		message: "锁定模块不能操作",
 				// 	})
 				// } else {
-				this.$confirm("是否删除已选资源？", "提示", {
-						confirmButtonText: "确定",
-						cancelButtonText: "取消",
-						type: "warning",
-					})
-					.then(() => {
-						this.delResource(item.id)
-					})
-					.catch(() => {
-						this.$message({
-							type: "info",
-							message: "已取消删除",
-						})
-					})
+				if (item.id) {
+					this.delResource(item.id) //传模块Id，删除模块下挂载的资源
+				}
 				// }
 			},
 			// 显示模块名称
@@ -912,6 +911,7 @@
 		max-width: 80%;
 		background: $bg-color2;
 		z-index: 100;
+		line-height: 20px;
 		//透明度
 		@include opacity(50);
 	}
@@ -933,15 +933,20 @@
 		background: $bg-color2;
 		z-index: 100;
 		padding: 0 5px;
+		line-height: 20px;
 		//透明度
 		@include opacity(50);
 
-		span {
+		>span {
 			font-size: 20px;
 			cursor: pointer;
 		}
 
-		span:hover {
+		>span:not(:first-child) {
+			margin-left: 5px;
+		}
+
+		>span:hover {
 			color: $hoverColor;
 			transition: 0.2s linear;
 		}

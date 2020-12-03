@@ -3,10 +3,10 @@
 	 element-loading-background="rgba(0, 0, 0, 0.8)" id="appEdit" @mouseup.native="closeModuleMouseMove">
 		<el-header>
 			<!-- 使用工具栏 -->
-			<Toolbar @initPage='initPage' :pageData="pageData" :isAddModule.sync="isAddModule"></Toolbar>
+			<Toolbar @initPage='initPage' :pageData="pageData" :grid="grid" :isAddModule.sync="isAddModule"></Toolbar>
 		</el-header>
 		<el-container class="page-content">
-			<el-main class="page-main">
+			<el-main :class="['page-main',grid.drawer?'page-margin-bottom':'']">
 				<!-- 页头 -->
 				<header v-if="pageData.header">
 					<Header></Header>
@@ -33,7 +33,12 @@
 								<component :is="item.draggableElement.draggableElementType" :moduleId="item.draggableElement.draggableModuleId"></component>
 								<div class="module_tools">
 									<span v-if="item.isLocked=='1'" class="el-icon-lock" title="锁定模块" @click="moduleLockedTips"></span>
-									<span v-else class="el-icon-close" @click="deleteResource(item)" title="删除资源"></span>
+									<template v-else>
+										<!-- 没有来源模块才可以删除 -->
+										<el-popconfirm v-if="!item.originModuleId" title="请确认是否删除模块？" @confirm="delModule(item,isModule=1)">
+											<span class="el-icon-delete" title="删除模块" slot="reference"></span>
+										</el-popconfirm>
+									</template>
 								</div>
 							</div>
 						</div>
@@ -57,6 +62,15 @@
 								<div class="module_name_wrap">
 									<span :id="'isTextModuleName_'+ item.id" class="module_name_text">{{ item.moduleName }}</span>
 								</div>
+								<div class="module_tools">
+									<span v-if="item.isLocked=='1'" class="el-icon-lock" title="锁定模块" @click="moduleLockedTips"></span>
+									<template v-else>
+										<!-- 没有来源模块才可以删除 -->
+										<el-popconfirm v-if="!item.originModuleId" title="请确认是否删除模块？" @confirm="delModule(item,isModule=1)">
+											<span class="el-icon-delete" title="删除模块" slot="reference"></span>
+										</el-popconfirm>
+									</template>
+								</div>
 							</draggable>
 						</div>
 					</template>
@@ -66,39 +80,35 @@
 					<Footer></Footer>
 				</footer>
 			</el-main>
-			<el-aside v-show="this.$store.state.pageId">
-				<div class="handle-button" @click="handleAside">
-					<i :class="aside.btnIcon"></i>
+			<el-drawer :visible.sync="grid.drawer" direction="btt" :modal="false" :wrapperClosable="false" size="200"
+			 :before-close="handleClose">
+				<div slot="title">
+					<div slot="header" class="clearfix resource-search">
+						<p>
+							<span>资源</span>
+							<el-autocomplete popper-class="my-autocomplete" v-model="searchResInput" :fetch-suggestions="querySearch"
+							 placeholder="请输入内容" size="mini" clearable>
+								<template slot-scope="{ item }">
+									<div class="name">{{ item.value}}</div>
+								</template>
+							</el-autocomplete>
+							<el-button icon="el-icon-search" circle @click="searchRes" title="搜索" size="mini"></el-button>
+						</p>
+					</div>
 				</div>
-				<div :class="['aside-content', { show: aside.isOpen }]">
-					<el-card class="box-card">
-						<div slot="header" class="clearfix resource-search">
-							<p>
-								<span>资源</span>
-								<el-autocomplete popper-class="my-autocomplete" v-model="searchResInput" :fetch-suggestions="querySearch"
-								 placeholder="请输入内容" size="mini" clearable>
-									<template slot-scope="{ item }">
-										<div class="name">{{ item.value}}</div>
-									</template>
-								</el-autocomplete>
-								<el-button icon="el-icon-search" circle @click="searchRes" title="搜索" size="mini"></el-button>
-							</p>
-						</div>
-						<el-collapse id="resource-list" class="resource-list" @change="handleResourceChange">
-							<el-collapse-item v-for="(item,key) in objResource" :key="'res'+key" :title="resourceType[key]" :name="key">
-								<draggable :list="item.data" :group="{ name: 'id', pull: 'clone', put: false }" @start="dragStart" @end="dragEnd">
-									<transition-group>
-										<div class="resource-item text-ellipsis" v-for="(reItem,reIndex) in item" :data-id="reItem.id" :data-type="reItem.type"
-										 :key="key +''+ reIndex" :title="reItem.name">
-											{{reItem.name}}
-										</div>
-									</transition-group>
-								</draggable>
-							</el-collapse-item>
-						</el-collapse>
-					</el-card>
-				</div>
-			</el-aside>
+				<el-card class="box-card" shadow="never">
+					<draggable class="resource-list div-column" :list="objResource.list.data" :group="objResource.list.data" @start="dragStart"
+					 @end="dragEnd">
+						<template v-for="(item,key) in objResource">
+							<div class="resource-type-title">{{resourceType[key]}}</div>
+							<div class="resource-item text-ellipsis" v-for="(reItem,reIndex) in item" :data-id="reItem.id" :data-type="reItem.type"
+							 :key="key +''+ reIndex" :title="reItem.name">
+								{{reItem.name}}
+							</div>
+						</template>
+					</draggable>
+				</el-card>
+			</el-drawer>
 		</el-container>
 	</el-container>
 </template>
@@ -124,13 +134,7 @@
 					rows: 16, //行数，默认16行，1080
 					colWidth: "4.16667%", // 每行宽度
 					rowHeight: "50px", // 每行高度
-				},
-				// 右侧面板设置
-				aside: {
-					iconOpen: "el-icon-setting", //设置图标
-					iconClose: "el-icon-close", //关闭图标
-					btnIcon: "el-icon-close",
-					isOpen: true, //是否打开设置
+					drawer: false //抽屉显示
 				},
 				// 当前页面数据
 				pageData: {
@@ -225,24 +229,9 @@
 				//新增模块，栅格画模块--鼠标抬起事件
 				this.moduleMouseUp()
 			},
-			//点击资源展开面板
-			handleResourceChange(val) {
-				let resList = document.getElementById("resource-list")
-				let resH = 0
-				for (let i = 0; i < val.length; i++) {
-					resH += this.objResource[val[i]].length
-				}
-				resList.style.height = this.resourceH + 28 * resH + "px"
-			},
-			// 右侧面板设置按钮切换事件
-			handleAside() {
-				if (this.aside.isOpen) {
-					this.aside.isOpen = false
-					this.aside.btnIcon = this.aside.iconOpen
-				} else {
-					this.aside.isOpen = true
-					this.aside.btnIcon = this.aside.iconClose
-				}
+			//关闭抽屉
+			handleClose(done) {
+				done();
 			},
 			//获取数据字典项
 			fetchDict() {
@@ -616,6 +605,48 @@
 					message: "锁定模块不可操作",
 				})
 			},
+			// 删除模块
+			delModule(item, isModule) {
+				//当前操作的是模块
+				if (isModule) {
+					item.moduleId = item.id
+				}
+				this.fullscreenLoading = true
+				this.loadingName = "删除模块中，请稍后..."
+				this.axios({
+					method: "delete",
+					url: "/portal/api/modules/" + item.moduleId,
+				}).then((res) => {
+					if (res.data) {
+						this.$message({
+							type: "success",
+							message: "删除模块成功！",
+						})
+						// 页面上删除模块
+						this.showModuleArr.map((list, index) => {
+							if (list.id == item.moduleId) {
+								this.showModuleArr.splice(index, 1)
+							}
+						})
+						// 无资源
+						if (!item.portalResourceId) {
+							this.editModuleArr.map((list, index) => {
+								if (list.id == item.moduleId) {
+									this.editModuleArr.splice(index, 1)
+								}
+							})
+						}
+						this.fullscreenLoading = false
+						//重新获取右侧模块面板数据
+						this.fetchModuleData(this.pageId, false)
+					} else {
+						this.$message({
+							type: "error",
+							message: "删除模块失败！",
+						})
+					}
+				})
+			},
 			// 删除资源
 			deleteResource(item) {
 				// if (item.isLocked == "1") {
@@ -738,6 +769,75 @@
 		background-color: $bgColor1;
 	}
 
+	.page-margin-bottom {
+		margin-bottom: 300px;
+	}
+
+	/* 页头、页脚操作隐藏 */
+	/deep/ .page-hf {
+		display: none !important;
+	}
+
+	/* 抽屉 */
+	/deep/ .el-drawer__wrapper {
+		top: auto;
+		height: 325px;
+		width: 100%;
+		-webkit-box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+		box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+
+		.el-drawer__container {
+			:focus {
+				outline: none;
+			}
+
+			.el-drawer {
+				height: 100%;
+
+				.el-drawer__header {
+					margin-bottom: 10px;
+					padding: 10px 20px 0;
+				}
+
+				.el-card__body {
+					padding: 10px 20px;
+
+					.resource-list {
+						/* 对齐方向 */
+						-webkit-flex-direction: column;
+						-ms-flex-direction: column;
+						flex-direction: column;
+						/* 是否换行 */
+						-webkit-flex-wrap: wrap;
+						-ms-flex-wrap: wrap;
+						flex-wrap: wrap;
+						/* 水平对齐方式 */
+						-webkit-justify-content: flex-start;
+						justify-content: flex-start;
+						-webkit-align-items: flex-start;
+						align-items: flex-start;
+						/* 整体向左靠 */
+						-webkit-align-content: flex-start;
+						align-content: flex-start;
+						overflow: auto;
+
+						>div {
+							display: inline-block;
+							float: left;
+							width: 150px;
+						}
+
+						.resource-type-title {
+							margin: 10px 0;
+							color: $fontColor;
+						}
+					}
+				}
+
+			}
+		}
+	}
+
 	/* 画模块部分 */
 	/* 选中样式 */
 	.td_change {
@@ -767,6 +867,7 @@
 		max-width: 80%;
 		background: $bg-color2;
 		z-index: 100;
+		line-height: 20px;
 		//透明度
 		@include opacity(50);
 	}
@@ -788,6 +889,7 @@
 		background: $bg-color2;
 		z-index: 100;
 		padding: 0 5px;
+		line-height: 20px;
 		//透明度
 		@include opacity(50);
 

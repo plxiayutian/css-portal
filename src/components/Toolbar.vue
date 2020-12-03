@@ -3,11 +3,12 @@
 	<div id="toolBar" class="toolbar">
 		<p class="now-page-name" @click="savePageDia = true" :title="pageName">{{pageName}}</p>
 		<!-- 页面设置组件 -->
-		<PageSetup :pageData="pageData"></PageSetup>
+		<PageSetup :pageData="pageData" :grid="grid"></PageSetup>
 		<el-form label-width="80px" style="margin-left: 20px;">
-			<el-form-item label="新增模块">
+			<el-form-item label="模块资源">
 				<el-button :class="['add-module', isAddModule?'el-icon-close':'el-icon-plus']" size="mini" circle
 				 @click.stop.prevent="addModule" :title="isAddModule?'取消':'添加模块'"></el-button>
+				<el-button class="el-icon-folder-add" size="mini" circle @click="grid.drawer=true" title="选择资源'"></el-button>
 			</el-form-item>
 		</el-form>
 		<div id="toolBox">
@@ -94,6 +95,8 @@
 		props: {
 			//页面数据
 			pageData: Object,
+			//栅格
+			grid: Object,
 			//是否新增模块
 			isAddModule: Boolean
 		},
@@ -112,18 +115,18 @@
 						name: "选择模板",
 						clickAffair: this.chooseModule
 					},
-					{
-						btn: "newBuilt",
-						icon: "iconxinjian",
-						name: "新建页面",
-						clickAffair: this.newBuilt
-					},
-					{
-						btn: "cleanUp",
-						icon: "iconqingkong",
-						name: "清空",
-						clickAffair: this.cleanUp
-					},
+					// {
+					// 	btn: "newBuilt",
+					// 	icon: "iconxinjian",
+					// 	name: "新建页面",
+					// 	clickAffair: this.newBuilt
+					// },
+					// {
+					// 	btn: "cleanUp",
+					// 	icon: "iconqingkong",
+					// 	name: "清空",
+					// 	clickAffair: this.cleanUp
+					// },
 					{
 						btn: "restore",
 						icon: "iconshuaxin",
@@ -499,10 +502,10 @@
 			addModule(e) {
 				// 修改父组件的变量值
 				if (this.isAddModule) {
-					this.$emit('update:isAddModule',false)
+					this.$emit('update:isAddModule', false)
 				} else {
 					//鼠标十字瞄准
-					this.$emit('update:isAddModule',true)
+					this.$emit('update:isAddModule', true)
 				}
 			},
 		},
