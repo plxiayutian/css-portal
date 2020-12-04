@@ -22,7 +22,8 @@
 
 						<!-- 展示的模块或模块及资源--无工具栏--不可拖拽 -->
 						<div v-for="(item,index) in showModuleArr" :key="'showModule_'+index">
-							<div :id="item.id" class="module_style" :style="{ top: item.curTop,left: item.curLeft,width: item.curWidth,height: item.curHeight }">
+							<!-- 锁定模块不可拖拽 -->
+							<div v-if="item.isLocked=='1'" :id="item.id" class="module_style module-show" :style="{ top: item.curTop,left: item.curLeft,width: item.curWidth,height: item.curHeight }">
 								<div class="module_name_wrap">
 									<span v-show="item.showModuleName" :id="'isTextModuleName_'+ item.id" class="module_name_text">{{ item.moduleName }}</span>
 									<span v-show="item.showModuleName" :id="'isHideModuleName_'+ item.id" class="module_name_text_tool el-icon-arrow-left"
@@ -30,22 +31,37 @@
 									<span v-show="!item.showModuleName" :id="'isShowModuleName_'+ item.id" class="module_name_text_tool el-icon-arrow-right"
 									 @click="showModuleName(item,index)"></span>
 								</div>
-								<component :is="item.draggableElement.draggableElementType" :moduleId="item.draggableElement.draggableModuleId"></component>
+								<component :is="item.draggableElement.draggableElementType" :moduleId="item.draggableElement.draggableModuleId"
+								 :type="item.draggableElement.draggableElementType" :title="item.moduleName"></component>
 								<div class="module_tools">
-									<span v-if="item.isLocked=='1'" class="el-icon-lock" title="锁定模块" @click="moduleLockedTips"></span>
-									<template v-else>
-										<!-- 没有来源模块才可以删除 -->
-										<el-popconfirm v-if="!item.originModuleId" title="请确认是否删除模块？" @confirm="delModule(item,isModule=1)">
-											<span class="el-icon-delete" title="删除模块" slot="reference"></span>
-										</el-popconfirm>
-									</template>
+									<span class="el-icon-lock" title="锁定模块" @click="moduleLockedTips(1)"></span>
 								</div>
 							</div>
+							<!-- 未锁定模块可拖拽 -->
+							<draggable v-else :list="item[index]" group="resourceItem" @start="dragStart" @end="dragEnd" :component-data="{attrs:{ locked: 0 }}"
+							 :id="item.id" class="module_style module-show" :style="{ top: item.curTop,left: item.curLeft,width: item.curWidth,height: item.curHeight }">
+								<div class="module_name_wrap">
+									<span v-show="item.showModuleName" :id="'isTextModuleName_'+ item.id" class="module_name_text">{{ item.moduleName }}</span>
+									<span v-show="item.showModuleName" :id="'isHideModuleName_'+ item.id" class="module_name_text_tool el-icon-arrow-left"
+									 @click="hiddenModuleName(item,index)"></span>
+									<span v-show="!item.showModuleName" :id="'isShowModuleName_'+ item.id" class="module_name_text_tool el-icon-arrow-right"
+									 @click="showModuleName(item,index)"></span>
+								</div>
+								<!-- 根据key值的改变动态重新渲染子组件 -->
+								<component :key="item.id + item.draggableElement.draggableResourceId" :is="item.draggableElement.draggableElementType"
+								 :moduleId="item.draggableElement.draggableModuleId" :type="item.draggableElement.draggableElementType" :title="item.moduleName"></component>
+								<div class="module_tools">
+									<!-- 没有来源模块才可以删除 -->
+									<el-popconfirm v-if="!item.originModuleId" title="请确认是否删除模块？" @confirm="delModule(item,isModule=1)">
+										<span class="el-icon-delete" title="删除模块" slot="reference"></span>
+									</el-popconfirm>
+								</div>
+							</draggable>
 						</div>
 
 						<!-- 编辑的模块--有工具栏--不可拖拽 -->
 						<div v-for="(item,index) in addModuleArr" :key="'addModule_'+index">
-							<div :id="item.id" class="module_style" :style="{ top: item.curTop,left: item.curLeft,width: item.curWidth,height: item.curHeight }">
+							<div :id="item.id" class="module_style module-add" :style="{ top: item.curTop,left: item.curLeft,width: item.curWidth,height: item.curHeight }">
 								<div class="module_name_wrap">
 									<input :id="'isInputModuleName_'+ item.id" class="module_name_input" type="text" placeholder="请输入模块名称" v-model="item.moduleName" />
 								</div>
@@ -58,18 +74,26 @@
 
 						<!-- 编辑的模块--无工具栏--可拖拽 -->
 						<div v-for="(item,index) in editModuleArr" :key="'editModule_'+index">
-							<draggable :list="item[index]" group="id" :id="item.id" class="module_style" :style="{ top: item.curTop,left: item.curLeft,width: item.curWidth,height: item.curHeight }">
+							<!-- 锁定模块不可拖拽 -->
+							<div v-if="item.isLocked=='1'" :list="item[index]" :id="item.id" class="module_style module-edit" :style="{ top: item.curTop,left: item.curLeft,width: item.curWidth,height: item.curHeight }">
 								<div class="module_name_wrap">
 									<span :id="'isTextModuleName_'+ item.id" class="module_name_text">{{ item.moduleName }}</span>
 								</div>
 								<div class="module_tools">
-									<span v-if="item.isLocked=='1'" class="el-icon-lock" title="锁定模块" @click="moduleLockedTips"></span>
-									<template v-else>
-										<!-- 没有来源模块才可以删除 -->
-										<el-popconfirm v-if="!item.originModuleId" title="请确认是否删除模块？" @confirm="delModule(item,isModule=1)">
-											<span class="el-icon-delete" title="删除模块" slot="reference"></span>
-										</el-popconfirm>
-									</template>
+									<span class="el-icon-lock" title="锁定模块" @click="moduleLockedTips(1)"></span>
+								</div>
+							</div>
+							<!-- 未锁定模块可拖拽 -->
+							<draggable v-else :list="item[index]" group="resourceItem" :component-data="{attrs:{ locked: 0 }}" :id="item.id"
+							 class="module_style module-edit" :style="{ top: item.curTop,left: item.curLeft,width: item.curWidth,height: item.curHeight }">
+								<div class="module_name_wrap">
+									<span :id="'isTextModuleName_'+ item.id" class="module_name_text">{{ item.moduleName }}</span>
+								</div>
+								<div class="module_tools">
+									<!-- 没有来源模块才可以删除 -->
+									<el-popconfirm v-if="!item.originModuleId" title="请确认是否删除模块？" @confirm="delModule(item,isModule=1)">
+										<span class="el-icon-delete" title="删除模块" slot="reference"></span>
+									</el-popconfirm>
 								</div>
 							</draggable>
 						</div>
@@ -97,13 +121,12 @@
 					</div>
 				</div>
 				<el-card class="box-card" shadow="never">
-					<draggable class="resource-list div-column" :list="objResource.list.data" :group="objResource.list.data" @start="dragStart"
-					 @end="dragEnd">
-						<template v-for="(item,key) in objResource">
-							<div class="resource-type-title">{{resourceType[key]}}</div>
-							<div class="resource-item text-ellipsis" v-for="(reItem,reIndex) in item" :data-id="reItem.id" :data-type="reItem.type"
-							 :key="key +''+ reIndex" :title="reItem.name">
-								{{reItem.name}}
+					<draggable class="resource-list div-column" v-model="arrResource" :sort="false" filter=".resource-type-title"
+					 draggable=".resource-item" :group="{ name: 'resourceItem', pull: 'clone', put: false }" @start="dragStart" @end="dragEnd">
+						<template v-for="(item,index) in arrResource">
+							<div v-if="index==0 || item.type!=arrResource[index-1].type" class="resource-type-title">{{resourceType[item.type]}}</div>
+							<div class="resource-item text-ellipsis" :key="'res'+ index" :data-id="item.id" :data-type="item.type" :title="item.name">
+								{{item.name||""}}
 							</div>
 						</template>
 					</draggable>
@@ -169,8 +192,8 @@
 				},
 				// 数据字典资源类型
 				resourceType: {},
-				// 资源列表数据
-				objResource: {},
+				//资源列表数据
+				arrResource: [],
 				// 右侧资源折叠面板初始高度
 				resourceH: 270,
 				// 右侧搜索资源
@@ -452,14 +475,17 @@
 					.get("/portal/api/resources/role")
 					.then((res) => {
 						if (res.data) {
-							let objResData = res.data
+							let arrRes = []
 							// 过滤掉没有数据的资源类型
-							for (let key in objResData) {
-								if (!objResData[key] || objResData[key].length == 0) {
-									delete objResData[key]
+							for (let key in res.data) {
+								if (res.data[key] && res.data[key].length > 0) {
+									arrRes = arrRes.concat(res.data[key])
 								}
 							}
-							this.objResource = objResData
+							//资源数据
+							this.arrResource = arrRes
+							//手动释放内存
+							arrRes = null
 						}
 					})
 					.catch((error) => {
@@ -551,21 +577,62 @@
 						}
 					})
 			},
-			// 拖拽前事件
-			dragStart(evt) {
+			/* 
+				拖拽前事件
+				@params:
+					evt：{to,from,item,clone,oldIndex,newIndex}
+					exchange:是否是模块交换资源
+			 */
+			dragStart(evt, exchange) {
+				//若是资源交换则来源元素设置成目标元素
+				if (!!exchange) {
+					evt.item = evt.to.children[2]  //第二个.module-main
+				}
 				if (evt.item) {
 					this.draggableElement.draggableElementType = evt.item.getAttribute("data-type")
 					this.draggableElement.draggableResourceId = evt.item.getAttribute("data-id")
-					this.draggableElement.draggableResourceName = evt.item.innerText
+					this.draggableElement.draggableResourceName = evt.item.getAttribute("title")
 				}
 			},
-			// 拖拽后事件
+			/* 
+				拖拽后事件
+				@params:
+					evt：{to,from,item,clone,oldIndex,newIndex}
+			 */
 			dragEnd(evt) {
-				if (evt.to.className == "module_style") {
-					let resourceId = this.draggableElement.draggableResourceId,
-						resourceName = this.draggableElement.draggableResourceName,
-						moduleId = evt.to.id
-					this.draggableElement.draggableModuleId = moduleId
+				let elemTo = evt.to //目标元素
+				let elemFrom = evt.from //操作元素
+				if (elemTo.id && elemFrom.id != elemTo.id) {
+					//页面中的模块
+					if (elemTo.className && elemTo.className.indexOf("module_style") != -1) {
+						//给模块挂载资源
+						this.moduleSetResource(elemTo)
+					}
+					//模块交换资源
+					if (elemFrom.className) {
+						//页面中带资源模块或者不带资源模块
+						if (elemFrom.className.indexOf("module-show") != -1 || elemFrom.className.indexOf("module-edit") != -1) {
+							//重置当前拖拽模块
+							this.dragStart(evt, 1)
+							//给模块挂载资源
+							this.moduleSetResource(elemFrom)
+						}
+					}
+				}
+			},
+			/* 
+				模块设置资源
+				@params:
+					elemTo：目标元素
+			*/
+			moduleSetResource(elemTo) {
+				let resourceId = this.draggableElement.draggableResourceId,
+					resourceName = this.draggableElement.draggableResourceName,
+					moduleId = elemTo.id
+				//设置当前拖拽的模块Id
+				this.draggableElement.draggableModuleId = moduleId
+				//模块挂载资源,若没有resourceId则删除模块下的资源
+				if (moduleId) {
 					this.axios({
 						method: "patch",
 						url: "/portal/api/modules/resource/" + moduleId + "/" + resourceId,
@@ -575,15 +642,34 @@
 								type: "success",
 								message: "添加资源成功!",
 							})
-							for (var i = 0; i < this.editModuleArr.length; i++) {
-								if (this.editModuleArr[i].id == moduleId) {
-									//当前操作模块添加到展示数据中
-									this.editModuleArr[i]["draggableElement"] = this.draggableElement
-									//模块名称
-									this.editModuleArr[i].moduleName = resourceName
-									this.showModuleArr.push(this.editModuleArr[i])
-									//删除当前正在操作编辑的模块数据
-									this.editModuleArr.splice(i, 1)
+							if (elemTo.className.indexOf("module-show") > -1) { //显示模块,有资源
+								for (var i = 0; i < this.showModuleArr.length; i++) {
+									if (this.showModuleArr[i].id == moduleId) {
+										let currModule = this.showModuleArr[i]
+										//当前操作的资源
+										this.arrResource.map((item, index) => {
+											if (item.id == resourceId) {
+												//给当前操作的模块挂载对应的资源
+												currModule.draggableElement.draggableElementType = item.type
+												currModule.draggableElement.draggableResourceId = item.id
+												currModule.moduleName = item.name
+												currModule.resourceVO = item
+												this.showModuleArr[i] = currModule
+											}
+										})
+									}
+								}
+							} else if (elemTo.className.indexOf("module-edit") > -1) { //编辑模块
+								for (var i = 0; i < this.editModuleArr.length; i++) {
+									if (this.editModuleArr[i].id == moduleId) {
+										//当前操作模块添加到展示数据中
+										this.editModuleArr[i]["draggableElement"] = this.draggableElement
+										//模块名称
+										this.editModuleArr[i].moduleName = resourceName
+										this.showModuleArr.push(this.editModuleArr[i])
+										//删除当前正在操作编辑的模块数据
+										this.editModuleArr.splice(i, 1)
+									}
 								}
 							}
 							//模块名称
@@ -599,11 +685,16 @@
 				}
 			},
 			//锁定模块不可操作提示
-			moduleLockedTips() {
-				this.$message({
-					type: "warning",
-					message: "锁定模块不可操作",
-				})
+			moduleLockedTips(locked) {
+				if (locked == "1") {
+					this.$message({
+						type: "warning",
+						message: "锁定模块不可操作",
+					})
+					return true
+				} else {
+					return false
+				}
 			},
 			// 删除模块
 			delModule(item, isModule) {
@@ -649,12 +740,8 @@
 			},
 			// 删除资源
 			deleteResource(item) {
-				// if (item.isLocked == "1") {
-				// 	this.$message({
-				// 		type: "warning",
-				// 		message: "锁定模块不能操作",
-				// 	})
-				// } else {
+				// let isLocked = this.moduleLockedTips(item.isLocked) //锁定模块不可操作提示
+				// if (!isLocked) {
 				this.$confirm("是否删除已选资源？", "提示", {
 						confirmButtonText: "确定",
 						cancelButtonText: "取消",
@@ -690,16 +777,23 @@
 						},
 					})
 					.then((res) => {
-						let searchRes = res.data
-						// 过滤掉没有数据的资源类型
-						for (let key in searchRes) {
-							if (searchRes[key].length == 0) {
-								delete searchRes[key]
+						if (res.data) {
+							let arrRes = []
+							// 过滤掉没有数据的资源类型
+							for (let key in res.data) {
+								if (res.data[key] && res.data[key].length > 0) {
+									arrRes = arrRes.concat(res.data[key])
+								}
 							}
+							//资源数据
+							this.arrResource = arrRes
+							//手动释放内存
+							arrRes = null
 						}
-						this.objResource = searchRes
 					})
-					.catch((err) => {})
+					.catch((error) => {
+						console.log(error)
+					})
 			},
 			/* 
 			 搜索下拉框提示类型

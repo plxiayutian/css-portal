@@ -8,7 +8,7 @@
 			<el-form-item label="模块资源">
 				<el-button :class="['add-module', isAddModule?'el-icon-close':'el-icon-plus']" size="mini" circle
 				 @click.stop.prevent="addModule" :title="isAddModule?'取消':'添加模块'"></el-button>
-				<el-button class="el-icon-folder-add" size="mini" circle @click="grid.drawer=true" title="选择资源'"></el-button>
+				<el-button class="el-icon-folder-add" size="mini" circle @click="grid.drawer=true" title="选择资源"></el-button>
 			</el-form-item>
 		</el-form>
 		<div id="toolBox">
@@ -534,6 +534,10 @@
 			/deep/ .el-form-item {
 				display: inline-block;
 				margin-bottom: 0 !important
+			}
+			
+			/deep/ .el-form-item__label {
+				color: inherit;
 			}
 		}
 
