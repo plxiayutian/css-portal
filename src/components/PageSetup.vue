@@ -242,7 +242,6 @@
 
 <style lang="scss" scoped>
 	.el-form {
-
 		/deep/ .el-form-item__label {
 			color: inherit;
 		}
