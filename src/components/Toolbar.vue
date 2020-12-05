@@ -4,11 +4,11 @@
 		<p class="now-page-name" @click="savePageDia = true" :title="pageName">{{pageName}}</p>
 		<!-- 页面设置组件 -->
 		<PageSetup :pageData="pageData" :grid="grid"></PageSetup>
-		<el-form label-width="80px" style="margin-left: 20px;">
+		<el-form class="module-resource" label-width="80px">
 			<el-form-item label="模块资源">
-				<el-button :class="['add-module', isAddModule?'el-icon-close':'el-icon-plus']" size="mini" circle
-				 @click.stop.prevent="addModule" :title="isAddModule?'取消':'添加模块'"></el-button>
-				<el-button class="el-icon-folder-add" size="mini" circle @click="grid.drawer=true" title="选择资源"></el-button>
+				<span :class="['add-module','iconfont', isAddModule?'el-icon-close':'iconxinzeng']" size="mini" circle
+				 @click.stop.prevent="addModule" :title="isAddModule?'取消':'添加模块'"></span>
+				<span class="iconfont iconxiangmu" size="mini" circle @click="grid.drawer=true" title="选择资源"></span>
 			</el-form-item>
 		</el-form>
 		<div id="toolBox">
@@ -105,13 +105,13 @@
 			return {
 				bars: [{
 						btn: "myPage",
-						icon: "iconxitongyunweiwenjian",
+						icon: "iconbuoumaotubiao25",
 						name: "我的页面",
 						clickAffair: this.myPage
 					},
 					{
 						btn: "chooseModule",
-						icon: "iconxuanze1",
+						icon: "iconxuanze2",
 						name: "选择模板",
 						clickAffair: this.chooseModule
 					},
@@ -129,13 +129,13 @@
 					// },
 					{
 						btn: "restore",
-						icon: "iconshuaxin",
+						icon: "iconhuanyuan",
 						name: "还原",
 						clickAffair: this.restore
 					},
 					{
 						btn: "preview",
-						icon: "iconyulan",
+						icon: "iconyulan1",
 						name: "预览",
 						clickAffair: this.preview
 					},
@@ -422,27 +422,33 @@
 				if (this.pageId) {
 					if (this.templateId) {
 						this.$confirm("是否确定还原当前页面到原模板页面？", "确定", {
-							confirmButtonText: "确认",
-							cancelButtonText: "取消",
-							type: "warning",
-						}).then(() => {
-							this.axios.put("/portal/api/pages/rollblocktemplate/" + this.pageId)
-								.then((res) => {
-									if (res.data) {
-										//设置当前页面正在编辑
-										this.$store.commit("setEditingPageState", true)
-										//初始化当前页面
-										this.$emit("initPage")
-										this.$message({
-											type: "success",
-											message: "还原成功",
-										})
-									}
+								confirmButtonText: "确认",
+								cancelButtonText: "取消",
+								type: "warning",
+							})
+							.then(() => {
+								this.axios.put("/portal/api/pages/rollblocktemplate/" + this.pageId)
+									.then((res) => {
+										if (res.data) {
+											//设置当前页面正在编辑
+											this.$store.commit("setEditingPageState", true)
+											//初始化当前页面
+											this.$emit("initPage")
+											this.$message({
+												type: "success",
+												message: "还原成功",
+											})
+										}
+									})
+									.catch((err) => {
+										console.log(err)
+									})
+							})
+							.catch(() => {
+								this.$message({
+									message: "取消还原",
 								})
-								.catch((err) => {
-									console.log(err)
-								})
-						})
+							})
 					} else {
 						this.$message({
 							type: "info",
@@ -535,9 +541,25 @@
 				display: inline-block;
 				margin-bottom: 0 !important
 			}
-			
+
 			/deep/ .el-form-item__label {
 				color: inherit;
+			}
+		}
+
+		/* 模块和资源操作按钮 */
+		.module-resource {
+			margin-left: 20px;
+
+			span {
+				font-size: 20px;
+				margin-left: 15px;
+				cursor: pointer;
+				color: $fontColor3;
+			}
+
+			span:hover {
+				color: $subColor3;
 			}
 		}
 
@@ -552,14 +574,18 @@
 			}
 
 			.toolItem:hover .iconfont {
-				color: #3dcd04;
+				color: $subColor3;
+				-webkit-transition: 0.2s linear;
+				-moz-transition: 0.2s linear;
+				-ms-transition: 0.2s linear;
+				-o-transition: 0.2s linear;
 				transition: 0.2s linear;
 			}
 		}
 	}
 
 	.iconfont {
-		color: #b8b8b8;
+		color: $fontColor3;
 		font-size: 20px;
 	}
 
