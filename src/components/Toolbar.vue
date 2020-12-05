@@ -5,10 +5,12 @@
 		<!-- 页面设置组件 -->
 		<PageSetup :pageData="pageData" :grid="grid"></PageSetup>
 		<el-form class="module-resource" label-width="80px">
-			<el-form-item label="模块资源">
+			<el-form-item label="模块">
 				<span :class="['add-module','iconfont', isAddModule?'el-icon-close':'iconxinzeng']" size="mini" circle
 				 @click.stop.prevent="addModule" :title="isAddModule?'取消':'添加模块'"></span>
-				<span class="iconfont iconxiangmu" size="mini" circle @click="grid.drawer=true" title="选择资源"></span>
+			</el-form-item>
+			<el-form-item label="资源">
+				<span class="iconfont iconwenjianjia1" size="mini" circle @click="grid.drawer=true" title="选择资源"></span>
 			</el-form-item>
 		</el-form>
 		<div id="toolBox">
@@ -105,13 +107,13 @@
 			return {
 				bars: [{
 						btn: "myPage",
-						icon: "iconbuoumaotubiao25",
+						icon: "iconxuanze2",
 						name: "我的页面",
 						clickAffair: this.myPage
 					},
 					{
 						btn: "chooseModule",
-						icon: "iconxuanze2",
+						icon: "iconbuoumaotubiao25",
 						name: "选择模板",
 						clickAffair: this.chooseModule
 					},
@@ -553,7 +555,6 @@
 
 			span {
 				font-size: 20px;
-				margin-left: 15px;
 				cursor: pointer;
 				color: $fontColor3;
 			}
