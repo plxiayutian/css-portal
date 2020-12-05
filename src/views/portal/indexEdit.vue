@@ -38,8 +38,8 @@
 								</div>
 							</div>
 							<!-- 未锁定模块可拖拽 -->
-							<draggable v-else :list="item[index]" group="resourceItem" @start="dragStart" @end="dragEnd" :component-data="{attrs:{ locked: 0 }}"
-							 :id="item.id" class="module_style module-show" :style="{ top: item.curTop,left: item.curLeft,width: item.curWidth,height: item.curHeight }">
+							<draggable v-else :list="item[index]" :group="{ name: 'resourceItem', pull: 'clone'}" @start="dragStart" @end="dragEnd"
+							 :component-data="{attrs:{ locked: 0 }}" :id="item.id" class="module_style module-show" :style="{ top: item.curTop,left: item.curLeft,width: item.curWidth,height: item.curHeight }">
 								<div class="module_name_wrap">
 									<span v-show="item.showModuleName" :id="'isTextModuleName_'+ item.id" class="module_name_text">{{ item.moduleName }}</span>
 									<span v-show="item.showModuleName" :id="'isHideModuleName_'+ item.id" class="module_name_text_tool el-icon-arrow-left"
@@ -84,8 +84,8 @@
 								</div>
 							</div>
 							<!-- 未锁定模块可拖拽 -->
-							<draggable v-else :list="item[index]" group="resourceItem" :component-data="{attrs:{ locked: 0 }}" :id="item.id"
-							 class="module_style module-edit" :style="{ top: item.curTop,left: item.curLeft,width: item.curWidth,height: item.curHeight }">
+							<draggable v-else :list="item[index]" group="resourceItem" draggable=".module-edit" :component-data="{attrs:{ locked: 0 }}"
+							 :id="item.id" class="module_style module-edit" :style="{ top: item.curTop,left: item.curLeft,width: item.curWidth,height: item.curHeight }">
 								<div class="module_name_wrap">
 									<span :id="'isTextModuleName_'+ item.id" class="module_name_text">{{ item.moduleName }}</span>
 								</div>
@@ -111,7 +111,7 @@
 						<p>
 							<span>资源</span>
 							<el-autocomplete popper-class="my-autocomplete" v-model="searchResInput" :fetch-suggestions="querySearch"
-							 placeholder="请输入内容" size="mini" clearable>
+							 placeholder="请输入内容" size="small" clearable>
 								<template slot-scope="{ item }">
 									<div class="name">{{ item.value}}</div>
 								</template>
@@ -121,7 +121,7 @@
 					</div>
 				</div>
 				<el-card class="box-card" shadow="never">
-					<draggable class="resource-list div-column" v-model="arrResource" :sort="false" filter=".resource-type-title"
+					<!-- <draggable class="resource-list div-column" v-model="arrResource" :sort="false" filter=".resource-type-title"
 					 draggable=".resource-item" :group="{ name: 'resourceItem', pull: 'clone', put: false }" @start="dragStart" @end="dragEnd">
 						<template v-for="(item,index) in arrResource">
 							<div v-if="index==0 || item.type!=arrResource[index-1].type" class="resource-type-title">{{resourceType[item.type]}}</div>
@@ -129,7 +129,20 @@
 								{{item.name||""}}
 							</div>
 						</template>
-					</draggable>
+					</draggable> -->
+					<template v-for="(item,key) in objResource">
+						<div class="resource-box">
+							<div class="resource-type-title">{{resourceType[key]}}</div>
+							<draggable class="resource-list div-column" v-model="objResource[key]" :key="'drag'+key" :sort="false" filter=".resource-type-title"
+							 draggable=".resource-item" :group="{ name: 'resourceItem', pull: 'clone', put: false }" @start="dragStart" @end="dragEnd"
+							 :style="'width:'+ 205 * Math.ceil((item.length)/4)+'px'">
+								<div class="resource-item text-ellipsis" v-for="(resItem,index) in item" :key="'res'+ index" :data-id="resItem.id"
+								 :data-type="resItem.type" :title="resItem.name">
+									{{resItem.name||""}}
+								</div>
+							</draggable>
+						</div>
+					</template>
 				</el-card>
 			</el-drawer>
 		</el-container>
@@ -192,8 +205,10 @@
 				},
 				// 数据字典资源类型
 				resourceType: {},
-				//资源列表数据
+				// 资源列表数据-数组
 				arrResource: [],
+				// 资源列表数据-对象
+				objResource: {},
 				// 右侧资源折叠面板初始高度
 				resourceH: 270,
 				// 右侧搜索资源
@@ -475,15 +490,19 @@
 					.get("/portal/api/resources/role")
 					.then((res) => {
 						if (res.data) {
+							console.log(res.data)
 							let arrRes = []
 							// 过滤掉没有数据的资源类型
 							for (let key in res.data) {
 								if (res.data[key] && res.data[key].length > 0) {
 									arrRes = arrRes.concat(res.data[key])
+								} else {
+									delete res.data[key]
 								}
 							}
 							//资源数据
 							this.arrResource = arrRes
+							this.objResource = res.data
 							//手动释放内存
 							arrRes = null
 						}
@@ -586,7 +605,17 @@
 			dragStart(evt, exchange) {
 				//若是资源交换则来源元素设置成目标元素
 				if (!!exchange) {
-					evt.item = evt.to.children[2]  //第二个.module-main
+					// evt.item = evt.to.children[2] //这个获取不一定能取到目标的Item
+					//目标模块,资源元素拖进去后有多个，要排除掉当前拖拽的这个
+					let elemToList = evt.to.getElementsByClassName("module-main")
+					//若拖拽的资源和目标模块的资源是同一个时则不执行资源挂载方法
+					if (elemToList && elemToList.length > 0) {
+						for (let i = 0; i < elemToList.length; i++) {
+							if (evt.item.getAttribute("data-id") != elemToList[i].getAttribute("data-id")) { //当前拖拽的资源Id != 目标模块的资源Id
+								evt.item = elemToList[i]
+							}
+						}
+					}
 				}
 				if (evt.item) {
 					this.draggableElement.draggableElementType = evt.item.getAttribute("data-type")
@@ -602,7 +631,17 @@
 			dragEnd(evt) {
 				let elemTo = evt.to //目标元素
 				let elemFrom = evt.from //操作元素
+				//不是当前模块拖拽到当前模块
 				if (elemTo.id && elemFrom.id != elemTo.id) {
+					let elemToItem = elemTo.getElementsByClassName("module-main") //目标模块 资源元素
+					//若拖拽的资源和目标模块的资源是同一个时则不执行资源挂载方法
+					if (elemToItem && elemToItem.length == 1) {
+						let itemResId = evt.item.getAttribute("data-id") //当前拖拽的资源Id
+						let toResId = elemToItem[0].getAttribute("data-id") //目标模块的资源Id
+						if (itemResId == toResId) {
+							return false
+						}
+					}
 					//页面中的模块
 					if (elemTo.className && elemTo.className.indexOf("module_style") != -1) {
 						//给模块挂载资源
@@ -659,6 +698,14 @@
 										})
 									}
 								}
+								//模块名称
+								res.data.moduleName = resourceName
+								//修改模块名称
+								this.handleSaveModuleName(res.data)
+								setTimeout(() => {
+									//获取右侧面板模块数据
+									this.fetchModuleData(this.pageId, true)
+								}, 200)
 							} else if (elemTo.className.indexOf("module-edit") > -1) { //编辑模块
 								for (var i = 0; i < this.editModuleArr.length; i++) {
 									if (this.editModuleArr[i].id == moduleId) {
@@ -671,15 +718,15 @@
 										this.editModuleArr.splice(i, 1)
 									}
 								}
+								//模块名称
+								res.data.moduleName = resourceName
+								//修改模块名称
+								this.handleSaveModuleName(res.data)
+								setTimeout(() => {
+									//获取右侧面板模块数据
+									this.fetchModuleData(this.pageId, false)
+								}, 200)
 							}
-							//模块名称
-							res.data.moduleName = resourceName
-							//修改模块名称
-							this.handleSaveModuleName(res.data)
-							setTimeout(() => {
-								//获取右侧面板模块数据
-								this.fetchModuleData(this.pageId, false)
-							}, 200)
 						}
 					})
 				}
@@ -783,10 +830,13 @@
 							for (let key in res.data) {
 								if (res.data[key] && res.data[key].length > 0) {
 									arrRes = arrRes.concat(res.data[key])
+								} else {
+									delete res.data[key]
 								}
 							}
 							//资源数据
 							this.arrResource = arrRes
+							this.objResource = res.data
 							//手动释放内存
 							arrRes = null
 						}
@@ -867,6 +917,37 @@
 		margin-bottom: 300px;
 	}
 
+	/deep/ .el-header {
+		color: $fontColor1;
+
+		.toolbar {
+			background-color: $bgColor2;
+			border-bottom: 1px solid $bgColor2;
+
+			.el-form-item:first-child {
+				margin-left: 3px;
+			}
+
+			.el-form-item:not(:first-child) {
+				margin-left: 15px;
+			}
+
+			.el-radio-button--small .el-radio-button__inner {
+				padding: 5px 10px;
+			}
+
+			.el-input--small .el-input__inner {
+				height: 24px;
+				line-height: 24px;
+			}
+
+			.el-input-number--small {
+				width: 120px;
+				line-height: 22px;
+			}
+		}
+	}
+
 	/* 页头、页脚操作隐藏 */
 	/deep/ .page-hf {
 		display: none !important;
@@ -889,12 +970,30 @@
 				height: 100%;
 
 				.el-drawer__header {
-					margin-bottom: 10px;
-					padding: 10px 20px 0;
+					margin-bottom: 0;
+					padding: 10px 20px;
+					background: $subColor3;
+					border-radius: 8px 8px 0 0;
+					color: $fontColor4;
 				}
 
 				.el-card__body {
-					padding: 10px 20px;
+					padding: 0px 20px;
+					color: $fontColor1;
+
+					.resource-box {
+						display: inline-block;
+						float: left;
+						width: auto;
+						margin-left: 20px;
+					}
+
+					.resource-type-title {
+						line-height: 24px;
+						padding: 8px 20px;
+						margin-bottom: 10px;
+						border-bottom: 2px solid $subColor3;
+					}
 
 					.resource-list {
 						/* 对齐方向 */
@@ -918,12 +1017,23 @@
 						>div {
 							display: inline-block;
 							float: left;
-							width: 150px;
+							width: 180px;
 						}
 
-						.resource-type-title {
-							margin: 10px 0;
-							color: $fontColor;
+						.resource-item {
+							height: 32px;
+							line-height: 32px;
+							border-radius: 20px;
+							margin: 10px 20px 10px 2px;
+							padding: 0 5px;
+							text-align: center;
+							background-color: $bgColor2;
+							box-shadow: 0px 0px 5px #999999;
+						}
+
+						.resource-item:hover {
+							background-color: $subColor3;
+							color: $fontColor4;
 						}
 					}
 				}
