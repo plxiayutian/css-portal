@@ -2,7 +2,7 @@
 	<div id="header" class="header">
 		<div class="h-top div-column">
 			<div class="h-top-left">
-				<img class="h-logo" src="../assets/images/logo.png" :alt="imgAlt">
+				<img class="h-logo" src="../../assets/images/logo.png" :alt="imgAlt">
 			</div>
 			<div class="h-top-right div-column">
 				<ul class="top-right-wrap div-column">
@@ -39,7 +39,7 @@
 		name: "pageHeader",
 		data() {
 			return {
-				imgSrc: "../assets/images/logo.png",
+				imgSrc: "../../assets/images/logo.png",
 				imgAlt: "中国软件",
 				registrar: "测试用户",
 				activeIndex: "1",

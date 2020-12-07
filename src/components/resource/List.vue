@@ -2,7 +2,7 @@
 	<div class="module-main" :data-id="resourceInfo.id" :data-type="type">
 		<el-card shadow="hover" class="box-card">
 			<div slot="header" class="clearfix">
-				<span class="resource_list_name_icon"><img src="../assets/images/list_icon.png" /></span>
+				<span class="resource_list_name_icon"><img src="../../assets/images/list_icon.png" /></span>
 				<span class="resource_list_name">{{ resourceInfo.name }}</span>
 				<el-button class="resource_list_more_btn" type="text" @click="checkList"> >> </el-button>
 			</div>
