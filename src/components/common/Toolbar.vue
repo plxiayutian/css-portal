@@ -2,22 +2,31 @@
 <template>
 	<div id="toolBar" class="toolbar">
 		<p class="now-page-name" @click="savePageDia = true" :title="pageName">{{pageName}}</p>
-		<!-- 页面设置组件 -->
-		<PageSetup :pageData="pageData" :grid="grid"></PageSetup>
-		<el-form class="module-resource" label-width="80px">
-			<el-form-item label="模块">
-				<span :class="['add-module','iconfont', isAddModule?'el-icon-close':'iconxinzeng']" size="mini" circle
-				 @click.stop.prevent="addModule" :title="isAddModule?'取消':'添加模块'"></span>
-			</el-form-item>
-			<el-form-item label="资源">
-				<span class="iconfont iconwenjianjia1" size="mini" circle @click="grid.drawer=true" title="选择资源"></span>
-			</el-form-item>
-		</el-form>
-		<div id="toolBox">
+		<template v-if="!isAdmin">
+			<!-- 页面设置组件 -->
+			<PageSetup :pageData="pageData" :grid="grid"></PageSetup>
+			<el-form class="module-resource" label-width="80px">
+				<el-form-item label="模块">
+					<span :class="['add-module','iconfont', isAddModule?'el-icon-close':'iconxinzeng']" size="mini" circle
+					 @click.stop.prevent="addModule" :title="isAddModule?'取消':'添加模块'"></span>
+				</el-form-item>
+				<el-form-item label="资源">
+					<span class="iconfont iconwenjianjia1" size="mini" circle @click="grid.drawer=true" title="选择资源"></span>
+				</el-form-item>
+			</el-form>
+		</template>
+		<div class="toolBox">
 			<!-- 模板来源Id不存在的时候，没有一键还原按钮 -->
-			<div class="toolItem" v-for="(item, index) in bars" :key="index" v-if="!(item.btn=='restore' && !templateId)" @click="item.clickAffair(item.name)">
-				<span class="iconfont" :class="item.icon" :title="item.name"></span>
-			</div>
+			<template v-for="(item, index) in bars" v-if="!(item.btn=='restore' && !templateId)">
+				<!-- 管理员工具栏按钮 -->
+				<div class="toolItem" v-if="isAdmin" :key="index" @click="item.clickAffair(item.name)">
+					<span class="iconfont" :class="item.icon" :title="item.name"></span>
+				</div>
+				<!-- 普通用户工具栏没有新建、清空按钮 -->
+				<div class="toolItem" v-else-if="(item.btn != 'newBuilt' && item.btn != 'cleanUp')" :key="index" @click="item.clickAffair(item.name)">
+					<span class="iconfont" :class="item.icon" :title="item.name"></span>
+				</div>
+			</template>
 		</div>
 		<!-- 我的页面弹窗 -->
 		<el-dialog :visible.sync="myPageDiaVisible" width="600px">
@@ -100,7 +109,9 @@
 			//栅格
 			grid: Object,
 			//是否新增模块
-			isAddModule: Boolean
+			isAddModule: Boolean,
+			//是否是管理员工具栏
+			isAdmin: Boolean
 		},
 		// props: ['pageData', 'isAddModule'], //pageData：页面数据、isAddModule：是否新增模块
 		data() {
@@ -117,18 +128,18 @@
 						name: "选择模板",
 						clickAffair: this.chooseModule
 					},
-					// {
-					// 	btn: "newBuilt",
-					// 	icon: "iconxinjian",
-					// 	name: "新建页面",
-					// 	clickAffair: this.newBuilt
-					// },
-					// {
-					// 	btn: "cleanUp",
-					// 	icon: "iconqingkong",
-					// 	name: "清空",
-					// 	clickAffair: this.cleanUp
-					// },
+					{
+						btn: "newBuilt",
+						icon: "iconxinjian",
+						name: "新建页面",
+						clickAffair: this.newBuilt
+					},
+					{
+						btn: "cleanUp",
+						icon: "iconqingkong",
+						name: "清空",
+						clickAffair: this.cleanUp
+					},
 					{
 						btn: "restore",
 						icon: "iconhuanyuan",
@@ -565,7 +576,7 @@
 		}
 
 		/* 工具按钮组 */
-		#toolBox {
+		.toolBox {
 			display: flex;
 			float: right;
 

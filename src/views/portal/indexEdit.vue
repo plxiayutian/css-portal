@@ -3,7 +3,7 @@
 	 element-loading-background="rgba(0, 0, 0, 0.8)" id="appEdit" @mouseup.native="closeModuleMouseMove">
 		<el-header>
 			<!-- 使用工具栏 -->
-			<Toolbar @initPage='initPage' :pageData="pageData" :grid="grid" :isAddModule.sync="isAddModule"></Toolbar>
+			<Toolbar @initPage='initPage' :pageData="pageData" :grid="grid" :isAddModule.sync="isAddModule" :isAdmin="false"></Toolbar>
 		</el-header>
 		<el-container class="page-content">
 			<el-main :class="['page-main',grid.drawer?'page-margin-bottom':'']">
@@ -490,7 +490,6 @@
 					.get("/portal/api/resources/role")
 					.then((res) => {
 						if (res.data) {
-							console.log(res.data)
 							let arrRes = []
 							// 过滤掉没有数据的资源类型
 							for (let key in res.data) {
