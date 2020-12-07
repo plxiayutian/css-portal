@@ -3,7 +3,7 @@
 	 element-loading-background="rgba(0, 0, 0, 0.8)" id="appEdit" @mouseup.native="closeModuleMouseMove">
 		<el-header>
 			<!-- 使用工具栏 -->
-			<AdminToolbar @initPage='initPage'></AdminToolbar>
+			<Toolbar @initPage='initPage' :pageData="pageData" :grid="grid" :isAddModule.sync="isAddModule" :isAdmin="true"></Toolbar>
 		</el-header>
 		<el-container class="page-content">
 			<el-main class="page-main">
@@ -94,7 +94,7 @@
 					<el-card class="box-card">
 						<div slot="header" class="clearfix div-column">
 							<span>布局</span>
-							<el-button :class="['add-module', isAddModule?'el-icon-close':'el-icon-plus']" size="mini" circle
+							<el-button :class="['add-module','iconfont', isAddModule?'el-icon-close':'iconxinzeng']" size="mini" circle
 							 @click.stop.prevent="addModule" :title=" isAddModule?'取消':'添加模块'"></el-button>
 						</div>
 						<ul class="module-list">
@@ -247,8 +247,8 @@
 		components: {
 			// 组件懒加载
 			//头部工具栏
-			AdminToolbar: (resolve) => {
-				require(["../../components/common/AdminToolbar.vue"], resolve)
+			Toolbar: (resolve) => {
+				require(["../../components/common/Toolbar.vue"], resolve)
 			},
 			//页面设置部分
 			PageSetup: (resolve) => {
