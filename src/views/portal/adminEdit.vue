@@ -248,27 +248,27 @@
 			// 组件懒加载
 			//头部工具栏
 			AdminToolbar: (resolve) => {
-				require(["../../components/AdminToolbar.vue"], resolve)
+				require(["../../components/common/AdminToolbar.vue"], resolve)
 			},
 			//页面设置部分
 			PageSetup: (resolve) => {
-				require(["../../components/PageSetup.vue"], resolve)
+				require(["../../components/common/PageSetup.vue"], resolve)
 			},
 			//页头
 			Header: (resolve) => {
-				require(["../../components/Header.vue"], resolve)
+				require(["../../components/resource/Header.vue"], resolve)
 			},
 			//页脚
 			Footer: (resolve) => {
-				require(["../../components/Footer.vue"], resolve)
+				require(["../../components/resource/Footer.vue"], resolve)
 			},
 			//轮播图
 			carousel: (resolve) => {
-				require(["../../components/Carousel.vue"], resolve)
+				require(["../../components/resource/Carousel.vue"], resolve)
 			},
 			//列表
 			list: (resolve) => {
-				require(["../../components/List.vue"], resolve)
+				require(["../../components/resource/List.vue"], resolve)
 			},
 			//拖拽组件
 			draggable: (resolve) => {
