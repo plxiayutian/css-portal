@@ -160,8 +160,12 @@
 </template>
 
 <script>
-	// 引入js组件
+	// 引入拖动选择区域画模块相关方法
 	import selectArea from "../../plugins/selectArea.js"
+	// 引入模块相关处理方法
+	import objModule from "../../plugins/module.js"
+	// 引入资源相关处理方法
+	import objResource from "../../plugins/resource.js"
 	export default {
 		name: "adminEdit",
 		data() {
@@ -221,7 +225,9 @@
 				},
 				// 数据字典资源类型
 				resourceType: {},
-				// 资源列表数据
+				// 资源列表数据-数组
+				arrResource: [],
+				// 资源列表数据-对象
 				objResource: {},
 				// 右侧资源折叠面板初始高度
 				resourceH: 270,
@@ -410,24 +416,21 @@
 			 ** initModule：是否加载模块
 			 */
 			fetchModuleData(pageId, initModule) {
-				this.axios
-					.get("/portal/api/modules/" + pageId + "/module/resource")
-					.then((res) => {
-						if (res.data) {
-							if (res.data.length > 0) {
-								res.data.map((item, index) => {
-									if (initModule) {
-										this.initModule(item)
-									}
-									//默认加不是正在编辑状态
-									if (item) {
-										item.isEdit = false
-									}
-								})
+				objModule.fetchModuleData(pageId, (data) => {
+					if (data.length > 0) {
+						data.map((item, index) => {
+							//初次获取初始化模块
+							if (initModule) {
+								this.initModule(item)
 							}
-							this.pageData.arrModule = res.data
-						}
-					})
+							//默认加不是正在编辑状态
+							if (item) {
+								item.isEdit = false
+							}
+						})
+					}
+					this.pageData.arrModule = data
+				})
 			},
 			//添加模块
 			addModule(e) {
@@ -455,48 +458,7 @@
 			blurModuleName(item, index) {
 				this.$set(this.pageData.arrModule[index], "isEdit", false)
 				//保存模块名称修改
-				this.handleSaveModuleName(item)
-			},
-			//保存模块名称修改
-			handleSaveModuleName(item) {
-				if (item.moduleId) {
-					this.axios({
-							method: "put",
-							url: "/portal/api/modules/modulename/",
-							data: {
-								moduleId: item.moduleId,
-								moduleName: item.moduleName,
-							}
-						})
-						.then((res) => {
-							if (res.data) {
-								let moduleArr,
-									selectedModuleId = item.moduleId,
-									changeModuleName = res.data.moduleName
-								// 判断有无资源
-								if (item.portalResourceId) {
-									moduleArr = this.showModuleArr
-								} else {
-									moduleArr = this.editModuleArr
-								}
-								//改变页面上对应模块的模块名称
-								moduleArr.map((list, index) => {
-									if (list.id == selectedModuleId) {
-										list.moduleName = changeModuleName
-									}
-								})
-							}
-							// else {
-							// 	this.$message({
-							// 		type: "error",
-							// 		message: "模块名称修改失败！",
-							// 	})
-							// }
-						})
-						.catch((error) => {
-							console.log(error)
-						})
-				}
+				objModule.changeModuleName(item, this.showModuleArr, this.editModuleArr)
 			},
 			/* 
 			  切换模块锁定状态
@@ -506,40 +468,10 @@
 				none:是否是空模块
 			 */
 			changeModuleLock(item, index, none) {
-				let strTitle = "" //提示信息
-				let isLocked = 0 //模块是否锁定
-				if (item.isLocked == '1') {
-					strTitle = "请确认是否解除该模块锁定？"
-					isLocked = '0' //锁定状态，0（未锁定）、1（锁定）
-				} else {
-					strTitle = "请确认是否锁定该模块？"
-					isLocked = '1' //锁定状态，0（未锁定）、1（锁定）
-				}
-				this.$confirm(strTitle, "提示", {
-						confirmButtonText: "确定",
-						cancelButtonText: "取消",
-						type: "warning",
-					})
-					.then(() => {
-						this.axios({
-							method: "patch",
-							url: "/portal/api/modules/" + item.id + "/" + isLocked,
-						}).then((res) => {
-							//修改当前模块的锁定图标
-							item.isLocked = isLocked
-							// if (!none) {
-							// 	this.$set(this.showModuleArr[index], index, item)
-							// } else { //空模块
-							// 	this.$set(this.editModuleArr[index], index, item)
-							// }
-							this.$message({
-								type: "success",
-								message: isLocked == '1' ? "锁定成功!" : "解锁成功!"
-							})
-							//重新获取右侧模块面板数据
-							this.fetchModuleData(this.pageId, false)
-						})
-					})
+				objModule.changeModuleLock(item, index, none, (data) => {
+					//重新获取右侧模块面板数据
+					// this.fetchModuleData(this.pageId, false)
+				})
 			},
 			// 删除模块
 			delModule(item, isModule) {
@@ -550,93 +482,17 @@
 					})
 					return false
 				}
-				//当前操作的是模块
-				if (isModule) {
-					item.moduleId = item.id
-				}
-				this.fullscreenLoading = true
-				this.loadingName = "删除模块中，请稍后..."
-				this.axios({
-					method: "delete",
-					url: "/portal/api/modules/" + item.moduleId,
-				}).then((res) => {
-					if (res.data) {
-						this.$message({
-							type: "success",
-							message: "删除模块成功！",
-						})
-						// 页面上删除模块
-						this.showModuleArr.map((list, index) => {
-							if (list.id == item.moduleId) {
-								this.showModuleArr.splice(index, 1)
-							}
-						})
-						// 无资源
-						if (!item.portalResourceId) {
-							this.editModuleArr.map((list, index) => {
-								if (list.id == item.moduleId) {
-									this.editModuleArr.splice(index, 1)
-								}
-							})
-						}
-						this.fullscreenLoading = false
-						//重新获取右侧模块面板数据
-						this.fetchModuleData(this.pageId, false)
-					} else {
-						this.$message({
-							type: "error",
-							message: "删除模块失败！",
-						})
-					}
+				objModule.delModule(item, this.showModuleArr, this.editModuleArr, isModule, (data) => {
+					//重新获取右侧模块面板数据
+					// this.fetchModuleData(this.pageId, false)
 				})
 			},
 			// 删除模块下挂载的资源
 			delResource(moduleId) {
-				this.axios({
-					method: "delete",
-					url: "/portal/api/modules/module/resource/" + moduleId,
-				}).then((res) => {
-					if (res.data) {
-						this.$message({
-							type: "success",
-							message: "删除资源成功！",
-						})
-						// 页面上删除模块上资源
-						this.showModuleArr.map((item, index) => {
-							if (item.id == moduleId) {
-								this.editModuleArr.push(this.showModuleArr[index])
-								this.showModuleArr.splice(index, 1)
-							}
-						})
-						//获取模块数据
-						this.fetchModuleData(this.pageId, false)
-					} else {
-						this.$message({
-							type: "error",
-							message: "删除资源失败！",
-						})
-					}
+				objModule.delResource(moduleId, this.showModuleArr, this.editModuleArr, (data) => {
+					//获取模块数据
+					this.fetchModuleData(this.pageId, false)
 				})
-			},
-			// 获取资源列表数据
-			fetchResource() {
-				this.axios
-					.get("/portal/api/resources/role")
-					.then((res) => {
-						if (res.data) {
-							let objResData = res.data
-							// 过滤掉没有数据的资源类型
-							for (let key in objResData) {
-								if (!objResData[key] || objResData[key].length == 0) {
-									delete objResData[key]
-								}
-							}
-							this.objResource = objResData
-						}
-					})
-					.catch((error) => {
-						console.log(error)
-					})
 			},
 			// 栅格画模块--鼠标按下事件
 			moduleMouseDown(x, y) {
@@ -672,37 +528,10 @@
 			},
 			// 新创建模块工具栏--保存
 			moduleToolSave(item) {
-				//等待动画
-				this.fullscreenLoading = true
-				this.loadingName = "模块保存中，请稍后..."
-				if (item) {
-					item.portalPageId = this.pageId //模块关联页面id
-					item.showModuleName = true //显示模块名称
-				}
-				//保存
-				if (item) {
-					this.axios.post("/portal/api/modules", item)
-						.then((res) => {
-							this.$message({
-								type: "success",
-								message: "模块保存成功!",
-							})
-							//获取模块数据
-							this.fetchModuleData(this.pageId, false)
-							//根据id匹配当前操作模块
-							this.addModuleArr.map((itemModule, index) => {
-								if (itemModule.id == item.id) {
-									//添加到待编辑模块数据中
-									itemModule.id = res.data.id
-									this.editModuleArr.push(itemModule)
-									//删除待添加模块中的数据
-									this.addModuleArr.splice(index, 1)
-								}
-							})
-							//关闭保存动画
-							this.fullscreenLoading = false
-						})
-				}
+				objModule.crateModule(item, this.pageId, this.addModuleArr, this.editModuleArr, (data) => {
+					//获取模块数据
+					this.fetchModuleData(this.pageId, false)
+				})
 			},
 			// 新创建还未保存模块工具栏--删除
 			moduleToolDelete(item) {
@@ -761,7 +590,7 @@
 							//模块名称
 							res.data.moduleName = resourceName
 							//修改模块名称
-							this.handleSaveModuleName(res.data)
+							objModule.changeModuleName(res.data, this.showModuleArr, this.editModuleArr)
 							setTimeout(() => {
 								//获取右侧面板模块数据
 								this.fetchModuleData(this.pageId, false)
@@ -772,16 +601,9 @@
 			},
 			// 删除资源
 			deleteResource(item) {
-				// if (item.isLocked == "1") {
-				// 	this.$message({
-				// 		type: "warning",
-				// 		message: "锁定模块不能操作",
-				// 	})
-				// } else {
 				if (item.id) {
 					this.delResource(item.id) //传模块Id，删除模块下挂载的资源
 				}
-				// }
 			},
 			// 显示模块名称
 			showModuleName(item, index) {
@@ -795,23 +617,10 @@
 			},
 			//搜索资源
 			searchRes() {
-				this.axios
-					.get("/portal/api/resources/bynameortype/", {
-						params: {
-							condition: this.searchResInput,
-						},
-					})
-					.then((res) => {
-						let searchRes = res.data
-						// 过滤掉没有数据的资源类型
-						for (let key in searchRes) {
-							if (searchRes[key].length == 0) {
-								delete searchRes[key]
-							}
-						}
-						this.objResource = searchRes
-					})
-					.catch((err) => {})
+				objResource.searchResource(this.searchResInput, this.arrResource, this.objResource).then((res) => {
+					this.arrResource = res.arrRes
+					this.objResource = res.objRes
+				})
 			},
 			/* 
 			 搜索下拉框提示类型
@@ -820,30 +629,19 @@
 				callback：回调函数
 			 */
 			querySearch(queryString, callback) {
-				var searchTip = []
-				for (let key in this.resourceType) {
-					var itemTip = {}
-					itemTip.value = this.resourceType[key]
-					searchTip.push(itemTip)
-				}
-				var results = queryString ? searchTip.filter(this.createFilter(queryString)) : searchTip
 				// 调用 callback 返回建议列表的数据
-				callback(results)
-			},
-			createFilter(queryString) {
-				return (result) => {
-					return (
-						result.value.toLowerCase().indexOf(queryString.toLowerCase()) === 0
-					)
-				}
+				callback(objResource.setQuerySearch(queryString, this.resourceType))
 			}
 		},
 		created: function() {},
 		mounted: function() {
 			//获取数据字典项
 			this.fetchDict()
-			//获取资源列表数据
-			this.fetchResource()
+			// 获取资源列表数据
+			objResource.fetchResource(this.arrResource, this.objResource).then((res) => {
+				this.arrResource = res.arrRes
+				this.objResource = res.objRes
+			})
 			// 初始化页面
 			if (this.editingPage) {
 				this.initPage()

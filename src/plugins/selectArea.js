@@ -1,3 +1,4 @@
+/* 拖动选择区域画模块相关事件 */
 var selectArea = {};
 
 var isMoveDown = false;
