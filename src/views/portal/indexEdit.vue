@@ -38,7 +38,7 @@
 								</div>
 							</div>
 							<!-- 未锁定模块可拖拽 -->
-							<draggable v-else :list="item[index]" :group="{ name: 'resourceItem', pull: 'clone'}" @start="dragStart" @end="dragEnd"
+							<draggable v-else :list="item[index]" :group="{ name: 'resourceItem' }" @start="dragStart" @end="dragEnd"
 							 :component-data="{attrs:{ locked: 0 }}" :id="item.id" class="module_style module-show" :style="{ top: item.curTop,left: item.curLeft,width: item.curWidth,height: item.curHeight }">
 								<div class="module_name_wrap">
 									<span v-show="item.showModuleName" :id="'isTextModuleName_'+ item.id" class="module_name_text">{{ item.moduleName }}</span>
@@ -384,8 +384,9 @@
 			 ** pageId：页面Id
 			 ** initModule：是否加载模块
 			 */
-			fetchModuleData(pageId, initModule) {
-				objModule.fetchModuleData(pageId, (data) => {
+			async fetchModuleData(pageId, initModule) {
+				// Promise方式
+				objModule.fetchModuleData(pageId).then((data) => {
 					if (data.length > 0) {
 						data.map((item, index) => {
 							//初次获取初始化模块
@@ -435,7 +436,8 @@
 			},
 			// 新创建模块工具栏--保存
 			moduleToolSave(item) {
-				objModule.crateModule(item, this.pageId, this.addModuleArr, this.editModuleArr, (data) => {
+				// Promise方式
+				objModule.crateModule(item, this.pageId, this.addModuleArr, this.editModuleArr).then((data) => {
 					//获取模块数据
 					this.fetchModuleData(this.pageId, false)
 				})
@@ -457,6 +459,9 @@
 								this.addModuleArr.splice(i, 1)
 							}
 						}
+					})
+					.catch((cancel) => {
+						// console.log("取消操作!")
 					})
 			},
 			/* 
@@ -507,20 +512,19 @@
 					}
 					//页面中的模块
 					if (elemTo.className && elemTo.className.indexOf("module_style") != -1) {
-						//给模块挂载资源
+						//给模块挂载资源--Promise方式
 						objModule.moduleSetResource(elemTo, {
 								arrModuleShow: this.showModuleArr,
 								arrModuleEdit: this.editModuleArr,
 								objDrag: this.draggableElement,
 								arrResource: this.arrResource
-							},
-							(data, hasResource) => {
+							})
+							.then((data, hasResource) => {
 								//修改模块名称
-								objModule.changeModuleName(data, this.showModuleArr, this.editModuleArr)
-								setTimeout(() => {
+								objModule.changeModuleName(data, this.showModuleArr, this.editModuleArr).then(() => {
 									//获取模块数据
 									this.fetchModuleData(this.pageId, hasResource)
-								}, 200)
+								})
 							})
 					}
 					//模块交换资源
@@ -529,20 +533,19 @@
 						if (elemFrom.className.indexOf("module-show") != -1 || elemFrom.className.indexOf("module-edit") != -1) {
 							//重置当前拖拽模块
 							this.dragStart(evt, 1)
-							//给模块挂载资源
+							//给模块挂载资源--Promise方式
 							objModule.moduleSetResource(elemFrom, {
 									arrModuleShow: this.showModuleArr,
 									arrModuleEdit: this.editModuleArr,
 									objDrag: this.draggableElement,
 									arrResource: this.arrResource
-								},
-								(data, hasResource) => {
+								})
+								.then((data, hasResource) => {
 									//修改模块名称
-									objModule.changeModuleName(data, this.showModuleArr, this.editModuleArr)
-									setTimeout(() => {
+									objModule.changeModuleName(data, this.showModuleArr, this.editModuleArr).then(() => {
 										//获取模块数据
-										this.fetchModuleData(this.pageId, hasResource)
-									}, 200)
+										this.fetchModuleData(this.pageId, true)
+									})
 								})
 						}
 					}
@@ -562,7 +565,8 @@
 			},
 			// 删除模块
 			delModule(item, isModule) {
-				objModule.delModule(item, this.showModuleArr, this.editModuleArr, isModule, (data) => {
+				// Promise方式
+				objModule.delModule(item, this.showModuleArr, this.editModuleArr, isModule).then((data) => {
 					//重新获取右侧模块面板数据
 					// this.fetchModuleData(this.pageId, false)
 				})
@@ -578,11 +582,18 @@
 				this.$set(this.showModuleArr, index, item)
 			},
 			//搜索资源
-			searchRes() {
-				objResource.searchResource(this.searchResInput, this.arrResource, this.objResource).then((res) => {
-					this.arrResource = res.arrRes
-					this.objResource = res.objRes
-				})
+			async searchRes() {
+				// async/await 方式
+				let objResAll = await objResource.searchResource(this.searchResInput, this.arrResource, this.objResource)
+				if (objResAll) {
+					this.arrResource = objResAll.arrRes
+					this.objResource = objResAll.objRes
+				}
+				// Promise方式
+				// objResource.searchResource(this.searchResInput, this.arrResource, this.objResource).then((res) => {
+				// 	this.arrResource = res.arrRes
+				// 	this.objResource = res.objRes
+				// })
 			},
 			/* 
 			 搜索下拉框提示类型
@@ -598,7 +609,7 @@
 		mounted: function() {
 			//获取数据字典项
 			this.fetchDict()
-			//获取资源列表数据
+			//获取资源列表数据--Promise
 			objResource.fetchResource(this.arrResource, this.objResource).then((res) => {
 				this.arrResource = res.arrRes
 				this.objResource = res.objRes
