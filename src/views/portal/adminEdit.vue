@@ -22,7 +22,8 @@
 
 						<!-- 展示的模块或模块及资源--无工具栏--不可拖拽 -->
 						<div v-for="(item,index) in showModuleArr" :key="'showModule_'+index">
-							<div :id="item.id" class="module_style" :style="{ top: item.curTop,left: item.curLeft,width: item.curWidth,height: item.curHeight }">
+							<draggable :list="item[index]" :group="{ name: 'resourceItem', pull: 'clone'}" @start="dragStart" @end="dragEnd"
+							 :component-data="{attrs:{ locked: 0 }}" :id="item.id" class="module_style module-show" :style="{ top: item.curTop,left: item.curLeft,width: item.curWidth,height: item.curHeight }">
 								<div class="module_name_wrap">
 									<span v-show="item.showModuleName" :id="'isTextModuleName_'+ item.id" class="module_name_text">{{ item.moduleName }}</span>
 									<span v-show="item.showModuleName" :id="'isHideModuleName_'+ item.id" class="module_name_text_tool el-icon-arrow-left"
@@ -30,7 +31,9 @@
 									<span v-show="!item.showModuleName" :id="'isShowModuleName_'+ item.id" class="module_name_text_tool el-icon-arrow-right"
 									 @click="showModuleName(item,index)"></span>
 								</div>
-								<component :is="item.draggableElement.draggableElementType" :moduleId="item.draggableElement.draggableModuleId"></component>
+								<!-- 根据key值的改变动态重新渲染子组件 -->
+								<component :key="item.id + item.draggableElement.draggableResourceId" :is="item.draggableElement.draggableElementType"
+								 :moduleId="item.draggableElement.draggableModuleId" :type="item.draggableElement.draggableElementType" :title="item.moduleName"></component>
 								<div class="module_tools">
 									<span v-if="item.isLocked=='1'" class="el-icon-lock" @click="changeModuleLock(item,index)" title="解除模块锁定"></span>
 									<span v-else class="el-icon-unlock" @click="changeModuleLock(item,index)" title="锁定模块"></span>
@@ -41,12 +44,12 @@
 										<span class="el-icon-delete" title="删除模块" slot="reference"></span>
 									</el-popconfirm>
 								</div>
-							</div>
+							</draggable>
 						</div>
 
 						<!-- 编辑的模块--有工具栏--不可拖拽 -->
 						<div v-for="(item,index) in addModuleArr" :key="'addModule_'+index">
-							<div :id="item.id" class="module_style" :style="{ top: item.curTop,left: item.curLeft,width: item.curWidth,height: item.curHeight }">
+							<div :id="item.id" class="module_style module-add" :style="{ top: item.curTop,left: item.curLeft,width: item.curWidth,height: item.curHeight }">
 								<div class="module_name_wrap">
 									<input :id="'isInputModuleName_'+ item.id" class="module_name_input" type="text" placeholder="请输入模块名称" v-model="item.moduleName" />
 								</div>
@@ -59,7 +62,8 @@
 
 						<!-- 编辑的模块--无工具栏--可拖拽 -->
 						<div v-for="(item,index) in editModuleArr" :key="'editModule_'+index">
-							<draggable :list="item[index]" group="id" :id="item.id" class="module_style" :style="{ top: item.curTop,left: item.curLeft,width: item.curWidth,height: item.curHeight }">
+							<draggable :list="item[index]" group="resourceItem" draggable=".module-edit" :component-data="{attrs:{ locked: 0 }}"
+							 :id="item.id" class="module_style module-edit" :style="{ top: item.curTop,left: item.curLeft,width: item.curWidth,height: item.curHeight }">
 								<div class="module_name_wrap">
 									<span :id="'isTextModuleName_'+ item.id" class="module_name_text">{{ item.moduleName }}</span>
 								</div>
@@ -129,23 +133,22 @@
 					</el-card>
 					<el-card class="box-card">
 						<div slot="header" class="clearfix resource-search">
-							<p>
-								<span>资源</span>
-								<el-autocomplete popper-class="my-autocomplete" v-model="searchResInput" :fetch-suggestions="querySearch"
-								 placeholder="请输入内容" size="mini" clearable>
-									<template slot-scope="{ item }">
-										<div class="name">{{ item.value}}</div>
-									</template>
-								</el-autocomplete>
-								<el-button icon="el-icon-search" circle @click="searchRes" title="搜索" size="mini"></el-button>
-							</p>
+							<span>资源</span>
+							<el-autocomplete popper-class="my-autocomplete" v-model="searchResInput" :fetch-suggestions="querySearch"
+							 placeholder="请输入内容" size="mini" clearable>
+								<template slot-scope="{ item }">
+									<div class="name">{{ item.value}}</div>
+								</template>
+							</el-autocomplete>
+							<el-button icon="el-icon-search" circle @click="searchRes" title="搜索" size="mini"></el-button>
 						</div>
-						<el-collapse id="resource-list" class="resource-list" @change="handleResourceChange">
+						<el-collapse ref="resourceList" class="resource-list" @change="handleResourceChange">
 							<el-collapse-item v-for="(item,key) in objResource" :key="'res'+key" :title="resourceType[key]" :name="key">
-								<draggable :list="item.data" :group="{ name: 'id', pull: 'clone', put: false }" @start="dragStart" @end="dragEnd">
+								<draggable :list="item.data" draggable=".resource-item" :group="{ name: 'resourceItem', pull: 'clone', put: false }"
+								 @start="dragStart" @end="dragEnd">
 									<transition-group>
-										<div class="resource-item text-ellipsis" v-for="(reItem,reIndex) in item" :data-id="reItem.id" :data-type="reItem.type"
-										 :key="key +''+ reIndex" :title="reItem.name">
+										<div class="resource-item text-ellipsis resItem" v-for="(reItem,reIndex) in item" :key="key +''+ reIndex"
+										 :data-id="reItem.id" :data-type="reItem.type" :title="reItem.name">
 											{{reItem.name}}
 										</div>
 									</transition-group>
@@ -289,12 +292,12 @@
 			},
 			//点击资源展开面板
 			handleResourceChange(val) {
-				let resList = document.getElementById("resource-list")
+				let resList = this.$refs.resourceList
 				let resH = 0
 				for (let i = 0; i < val.length; i++) {
 					resH += this.objResource[val[i]].length
 				}
-				resList.style.height = this.resourceH + 28 * resH + "px"
+				resList.$el.style.height = this.resourceH + 28 * resH + "px"
 			},
 			// 右侧面板设置按钮切换事件
 			handleAside() {
@@ -416,7 +419,8 @@
 			 ** initModule：是否加载模块
 			 */
 			fetchModuleData(pageId, initModule) {
-				objModule.fetchModuleData(pageId, (data) => {
+				// Promise方式
+				objModule.fetchModuleData(pageId).then((data) => {
 					if (data.length > 0) {
 						data.map((item, index) => {
 							//初次获取初始化模块
@@ -457,8 +461,9 @@
 			//模块名称输入框失去焦点事件
 			blurModuleName(item, index) {
 				this.$set(this.pageData.arrModule[index], "isEdit", false)
-				//保存模块名称修改
+				//保存模块名称修改--Promise方式
 				objModule.changeModuleName(item, this.showModuleArr, this.editModuleArr)
+				// .then((data) => {})
 			},
 			/* 
 			  切换模块锁定状态
@@ -468,7 +473,8 @@
 				none:是否是空模块
 			 */
 			changeModuleLock(item, index, none) {
-				objModule.changeModuleLock(item, index, none, (data) => {
+				// Promise方式
+				objModule.changeModuleLock(item, index, none).then((data) => {
 					//重新获取右侧模块面板数据
 					// this.fetchModuleData(this.pageId, false)
 				})
@@ -482,14 +488,16 @@
 					})
 					return false
 				}
-				objModule.delModule(item, this.showModuleArr, this.editModuleArr, isModule, (data) => {
+				// Promise方式
+				objModule.delModule(item, this.showModuleArr, this.editModuleArr, isModule).then((data) => {
 					//重新获取右侧模块面板数据
 					// this.fetchModuleData(this.pageId, false)
 				})
 			},
 			// 删除模块下挂载的资源
 			delResource(moduleId) {
-				objModule.delResource(moduleId, this.showModuleArr, this.editModuleArr, (data) => {
+				// Promise方式
+				objModule.delResource(moduleId, this.showModuleArr, this.editModuleArr).then((data) => {
 					//获取模块数据
 					this.fetchModuleData(this.pageId, false)
 				})
@@ -528,7 +536,8 @@
 			},
 			// 新创建模块工具栏--保存
 			moduleToolSave(item) {
-				objModule.crateModule(item, this.pageId, this.addModuleArr, this.editModuleArr, (data) => {
+				// Promise方式
+				objModule.crateModule(item, this.pageId, this.addModuleArr, this.editModuleArr).then((data) => {
 					//获取模块数据
 					this.fetchModuleData(this.pageId, false)
 				})
@@ -551,52 +560,101 @@
 							}
 						}
 					})
+					.catch((cancel) => {
+						// console.log("取消操作!")
+					})
 			},
-			// 拖拽前事件
-			dragStart(evt) {
+			/*
+				拖拽前事件
+				@params:
+					evt：{to,from,item,clone,oldIndex,newIndex}
+					exchange:是否是模块交换资源
+			 */
+			dragStart(evt, exchange) {
+				//若是资源交换则来源元素设置成目标元素
+				if (!!exchange) {
+					// evt.item = evt.to.children[2] //这个获取不一定能取到目标的Item
+					//目标模块,资源元素拖进去后有多个，要排除掉当前拖拽的这个
+					let elemToList = evt.to.getElementsByClassName("module-main")
+					//若拖拽的资源和目标模块的资源是同一个时则不执行资源挂载方法
+					if (elemToList && elemToList.length > 0) {
+						for (let i = 0; i < elemToList.length; i++) {
+							if (evt.item.getAttribute("data-id") != elemToList[i].getAttribute("data-id")) { //当前拖拽的资源Id != 目标模块的资源Id
+								evt.item = elemToList[i]
+							}
+						}
+					}
+				}
 				if (evt.item) {
 					this.draggableElement.draggableElementType = evt.item.getAttribute("data-type")
 					this.draggableElement.draggableResourceId = evt.item.getAttribute("data-id")
-					this.draggableElement.draggableResourceName = evt.item.innerText
+					this.draggableElement.draggableResourceName = evt.item.getAttribute("title")
 				}
 			},
 			// 拖拽后事件
 			dragEnd(evt) {
-				if (evt.to.className == "module_style") {
-					let resourceId = this.draggableElement.draggableResourceId,
-						resourceName = this.draggableElement.draggableResourceName,
-						moduleId = evt.to.id
-					this.draggableElement.draggableModuleId = moduleId
-					this.axios({
-						method: "patch",
-						url: "/portal/api/modules/resource/" + moduleId + "/" + resourceId,
-					}).then((res) => {
-						if (res.data) {
-							this.$message({
-								type: "success",
-								message: "添加资源成功!",
-							})
-							for (var i = 0; i < this.editModuleArr.length; i++) {
-								if (this.editModuleArr[i].id == moduleId) {
-									//当前操作模块添加到展示数据中
-									this.editModuleArr[i]["draggableElement"] = this.draggableElement
-									//模块名称
-									this.editModuleArr[i].moduleName = resourceName
-									this.showModuleArr.push(this.editModuleArr[i])
-									//删除当前正在操作编辑的模块数据
-									this.editModuleArr.splice(i, 1)
-								}
+				let elemTo = evt.to //目标元素
+				let elemFrom = evt.from //操作元素
+				//不是当前模块拖拽到当前模块
+				if (elemTo.id && elemFrom.id != elemTo.id) {
+					let elemToItem = elemTo.getElementsByClassName("module-main") //目标模块 资源元素
+					//若拖拽的资源和目标模块的资源是同一个时则不执行资源挂载方法
+					if (elemToItem && elemToItem.length == 1) {
+						let itemResId = evt.item.getAttribute("data-id") //当前拖拽的资源Id
+						let toResId = elemToItem[0].getAttribute("data-id") //目标模块的资源Id
+						if (itemResId == toResId) {
+							//删除从右侧侧边栏拖拽clone过去的元素
+							let elemResItem = elemTo.getElementsByClassName("resItem")
+							if (elemResItem && elemResItem.length > 0) {
+								elemTo.removeChild(elemResItem[0])
 							}
-							//模块名称
-							res.data.moduleName = resourceName
-							//修改模块名称
-							objModule.changeModuleName(res.data, this.showModuleArr, this.editModuleArr)
-							setTimeout(() => {
-								//获取右侧面板模块数据
-								this.fetchModuleData(this.pageId, false)
-							}, 200)
+							return false
 						}
-					})
+					}
+					//页面中的模块
+					if (elemTo.className && elemTo.className.indexOf("module_style") != -1) {
+						//给模块挂载资源--Promise方式
+						objModule.moduleSetResource(elemTo, {
+								arrModuleShow: this.showModuleArr,
+								arrModuleEdit: this.editModuleArr,
+								objDrag: this.draggableElement,
+								arrResource: this.arrResource
+							})
+							.then((data, hasResource) => {
+								//删除从右侧侧边栏拖拽clone过去的元素
+								let elemResItem = elemTo.getElementsByClassName("resItem")
+								if (elemResItem && elemResItem.length > 0) {
+									elemTo.removeChild(elemResItem[0])
+								}
+								//修改模块名称
+								objModule.changeModuleName(data, this.showModuleArr, this.editModuleArr).then(() => {
+									//获取模块数据
+									this.fetchModuleData(this.pageId, hasResource)
+								})
+							})
+					}
+					//模块交换资源
+					if (elemFrom.className) {
+						//页面中带资源模块或者不带资源模块
+						if (elemFrom.className.indexOf("module-show") != -1 || elemFrom.className.indexOf("module-edit") != -1) {
+							//重置当前拖拽模块
+							this.dragStart(evt, 1)
+							//给模块挂载资源--Promise方式
+							objModule.moduleSetResource(elemFrom, {
+									arrModuleShow: this.showModuleArr,
+									arrModuleEdit: this.editModuleArr,
+									objDrag: this.draggableElement,
+									arrResource: this.arrResource
+								})
+								.then((data, hasResource) => {
+									//修改模块名称
+									objModule.changeModuleName(data, this.showModuleArr, this.editModuleArr).then(() => {
+										//获取模块数据
+										this.fetchModuleData(this.pageId, true)
+									})
+								})
+						}
+					}
 				}
 			},
 			// 删除资源
@@ -617,6 +675,7 @@
 			},
 			//搜索资源
 			searchRes() {
+				// Promise方式
 				objResource.searchResource(this.searchResInput, this.arrResource, this.objResource).then((res) => {
 					this.arrResource = res.arrRes
 					this.objResource = res.objRes
@@ -633,11 +692,10 @@
 				callback(objResource.setQuerySearch(queryString, this.resourceType))
 			}
 		},
-		created: function() {},
 		mounted: function() {
 			//获取数据字典项
 			this.fetchDict()
-			// 获取资源列表数据
+			// 获取资源列表数据--Promise
 			objResource.fetchResource(this.arrResource, this.objResource).then((res) => {
 				this.arrResource = res.arrRes
 				this.objResource = res.objRes
