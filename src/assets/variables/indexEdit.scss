@@ -1,0 +1,313 @@
+/*	
+	created by penglei
+	2020/11/12
+	编辑页面scss样式
+*/
+
+/*
+	定义页面色调
+*/
+$mainColor: #3D3D3D;
+//第一辅色
+$subColor1:#616264;
+//第二辅色
+$subColor2:#409EFF;
+//第三辅色
+$subColor3:#466ED8;
+
+//背景色
+$bgColor:#FFFFFF;
+//第一背景辅色
+$bgColor1:#f9f9f9;
+//第二背景辅色
+$bgColor2:#EEEEF5;
+
+/*
+	定义字体
+*/
+//主要字体颜色
+$fontColor:#b8b8b8;
+$fontColor1:#333333;
+$fontColor2:#666666;
+$fontColor3:#999999;
+$fontColor4:#FFFFFF;
+//字体大小
+$mainFontSize: 16px;
+$title1FontSize:24px;
+$title2FontSize:20px;
+$title3FontSize:18px;
+
+/* 
+	创建的页面变量
+*/
+//工具栏高度
+$toolbarHeight:40px;
+//栅格区域宽度
+$pageWidth:1200px;
+//右侧面板宽度
+$asideWidth:300px;
+
+// CSS Module 有一个:export关键字，它在功能上等同于 ES6 的关键字export，即导出一个 js 对象。
+:export {
+  name: "scss"; 
+  //页面色调
+  mainColor: $mainColor;
+  subColor1: $subColor1;
+  subColor2: $subColor2;
+  subColor3: $subColor3;
+  //背景色
+  bgColor: $bgColor;
+  bgColor1: $bgColor1;
+  //字体
+  fontColor:$fontColor;
+  mainFontSize: $mainFontSize;
+  title1FontSize:$title1FontSize;
+  title2FontSize:$title2FontSize;
+  title3FontSize:$title3FontSize;
+  //工具栏高度
+  toolbarHeight:$toolbarHeight;
+  //栅格区域宽度
+  pageWidth:$pageWidth;
+  //右侧面板宽度
+  asideWidth:$asideWidth;
+}
+
+html{
+	font-size:$mainFontSize;
+}
+
+/*重置滚动条*/
+#appEdit{
+	::-webkit-scrollbar{
+		height: 8px;
+		width: 8px;
+	} 
+	::-webkit-scrollbar-thumb{
+		border-radius: 5px;-webkit-box-shadow: inset 0 0 5px rgba(0,0,0, 0.2);
+		background: rgba(0,0,0, 0.2);
+		height: 2px;
+		background-color: $subColor1;
+	}
+	::-webkit-scrollbar-track{
+		-webkit-box-shadow: inset 0 0 5px rgba(0,0,0, 0.2);
+		background: rgba(0,0,0, 0.1);
+		border-radius: 0;
+	}
+	
+	// IE浏览器
+	*{
+		scrollbar{
+			height: 8px;
+			width: 8px;
+		} 
+		scrollbar-thumb{
+			border-radius: 5px;
+			-webkit-box-shadow: inset 0 0 5px rgba(0,0,0, 0.2);
+			background: rgba(0,0,0, 0.2);
+			height: 2px;
+			background-color: $subColor1;
+		}
+		scrollbar-track{
+			-webkit-box-shadow: inset 0 0 5px rgba(0,0,0, 0.2);
+			background: rgba(0,0,0, 0.1);
+			border-radius: 0;
+		}
+	}
+}
+
+/* 网格区域 */
+.page-area {
+	position: relative;
+	width: $pageWidth;
+	min-height: 100%;
+	margin: 0 auto;
+	background-color: $bgColor;
+
+	.el-row {
+
+		.el-col {
+			height: 100%;
+			border-bottom: 1px dashed #dddddd;
+		}
+		
+		.el-col:nth-child(13n){
+			border-left-color: red!important;
+		}
+
+		.el-col:not(:first-child) {
+			border-left: 1px dashed #dddddd;
+		}
+
+		.el-col:hover {
+			border: 1px solid $subColor2;
+		}
+	}
+}
+
+/* 鼠标变成十字准线 */
+.crosshair{
+	cursor: crosshair;
+}
+
+/* 右侧面板 */
+.el-aside {
+	width: auto !important;
+	color: $fontColor;
+	background-color: $mainColor;
+	// border-top: 2px solid $subColor1;
+	overflow: inherit!important;
+	position: absolute;
+	right: 0;
+	z-index: 999;
+	height: -moz-calc(100% - #{$toolbarHeight} - 1px);
+	height: -webkit-calc(100% - #{$toolbarHeight} - 1px);
+	height: calc(100% - #{$toolbarHeight} - 1px);
+	line-height: 1.5;
+
+	/* 右侧面板设置按钮 */
+	.handle-button {
+		top: 250px;
+		background-color: $subColor2;
+		width: 48px;
+		height: 48px;
+		position: absolute;
+		left: -48px;
+		text-align: center;
+		font-size: 24px;
+		border-radius: 6px 0 0 6px !important;
+		z-index: 0;
+		pointer-events: auto;
+		cursor: pointer;
+		color: #fff;
+		line-height: 48px;
+
+		i {
+			font-size: 24px;
+		}
+	}
+
+	/* 右侧面板主体部分 */
+	.aside-content {
+		height: 100%;
+		overflow: auto;
+		padding: 0 5px;
+		width: 0;
+		display: none;
+		
+		>div:first-child{
+			margin-top: 10px;
+		}
+		
+		.el-card{
+			border: 1px solid $subColor1;
+			background-color: transparent;
+			color: inherit;
+			margin-bottom: 10px;
+			
+			.el-card__header{
+				padding: 10px 10px;
+				border-bottom: 1px solid $subColor1;
+			}
+			
+			.el-card__body{
+				padding: 10px;
+			}
+		}
+
+		.el-collapse {
+			width: 100%;
+			// border-top: 1px solid $subColor1;
+			// border-bottom: 1px solid $subColor1;
+			border-top: none;
+			border-bottom: none;
+
+			.el-collapse-item__header {
+				background-color: transparent;
+				color: inherit;
+				font-size: inherit;
+				border-bottom: 1px solid $subColor1;
+				
+				.el-collapse-item__arrow{
+					display: none;
+				}
+			}
+
+			.el-collapse-item__wrap {
+				background-color: transparent;
+				border-bottom: 1px solid $subColor1;
+			}
+
+			.el-collapse-item__content {
+				color: inherit;
+				font-size: inherit;
+				padding:10px;
+			}
+		}
+	}
+	
+	/* 添加模块 */
+	.add-module{
+		margin: 0 8px 0 auto;
+	}
+
+	.aside-content.show {
+		width: $asideWidth;
+		display: block;
+		-webkit-transition: all 0.5s cubic-bezier(0.7, 0.3, 0.1, 1);
+		transition: all 0.5s cubic-bezier(0.7, 0.3, 0.1, 1);
+	}
+}
+
+/* 红色主题 */
+.theme-red {
+	.el-radio__input.is-checked .el-radio__inner {
+		border-color: $main-color1;
+		background: $main-color1;
+	}
+
+	.el-radio__input.is-checked+.el-radio__label {
+		color: $main-color1;
+	}
+}
+
+/* 模块列表 */
+.module-list {
+	height: 300px;
+	overflow-y: auto;
+	
+	>li{
+		margin-bottom: 10px;
+	}
+	
+	.module-icon {
+		text-align: center;
+	}
+
+	.module-icon i {
+		color: $subColor2;
+		cursor: pointer;
+	}
+
+	.module-content .module-name {
+		padding-left: 20px;
+	}
+
+	ul>li:hover {
+		cursor: pointer;
+		color: $subColor2;
+	}
+}
+
+/* 资源列表 */
+.resource-list{
+	height: 255px;
+	
+	.resource-item:not(:last-child){
+		margin-bottom: 10px;
+	}
+	
+	.resource-item:hover {
+		cursor: pointer;
+		color: $subColor2;
+	}
+}

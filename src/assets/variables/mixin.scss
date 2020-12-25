@@ -1,0 +1,160 @@
+/*	
+	created by penglei
+	2020/11/12
+	展示页面scss样式
+*/
+// 引入scss变量文件
+@import "./base.scss";
+
+/*切换字体颜色*/
+@mixin changeColor($color){
+    color:$color;
+    /*判断匹配*/
+    [data-theme="theme"] & {
+        color:$main-color;
+    }
+    /*判断匹配*/
+    [data-theme="theme1"] & {
+        color:$main-color1;
+    }
+}
+
+/*切换辅色字体颜色*/
+@mixin changeFirstColor($color){
+    color:$color;
+    /*判断匹配*/
+    [data-theme="theme"] & {
+        color:$first-color;
+    }
+    /*判断匹配*/
+    [data-theme="theme1"] & {
+        color:$first-color1;
+    }
+}
+
+/*切换背景颜色*/
+@mixin changeBackgroundColor($color){
+	background-color: $color;
+    /*判断匹配*/
+    [data-theme="theme"] & {
+        background-color: $main-color;
+    }
+    /*判断匹配*/
+    [data-theme="theme1"] & {
+        background-color: $main-color1;
+    }
+}
+
+/*切换背景第一辅色颜色*/
+@mixin changeBgFirstColor($color){
+	background-color: $color;
+    /*判断匹配*/
+    [data-theme="theme"] & {
+        background-color: $first-color;
+    }
+    /*判断匹配*/
+    [data-theme="theme1"] & {
+        background-color: $first-color1;
+    }
+}
+
+/*切换背景第二辅色颜色*/
+@mixin changeBgSecondColor($color){
+	background-color: $color;
+    /*判断匹配*/
+    [data-theme="theme"] & {
+        background-color: $second-color;
+    }
+    /*判断匹配*/
+    [data-theme="theme1"] & {
+        background-color: $second-color1;
+    }
+}
+
+/*
+	切换Menu背景色
+	参数：
+		渐变的类型? (linear)
+		渐变开始的X Y 轴坐标(0 0 – 或者left-top)
+		渐变结束的X Y 轴坐标(0 100% 或者left-bottom)
+		开始的颜色? (from(red))
+		结束的颜色? (to(blue))
+*/
+@mixin changeMenuBgImage($color1, $color2){
+	background-image: -moz-linear-gradient(0deg, $color1, $color2, $color2);
+	background-image: -webkit-gradient(0deg, $color1, $color2, $color2);
+	background-image: -webkit-linear-gradient(0deg, $color1, $color2, $color2);
+	background-image: -o-linear-gradient(0deg, $color1, $color2, $color2);
+	background-image: -ms-linear-gradient(0deg, $color1, $color2, $color2);
+	background-image: linear-gradient(0deg, $color1, $color2, $color2);
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#{$color1}', endColorstr='#{$color2}',GradientType=0 );
+	
+    /*判断匹配*/
+    [data-theme="theme"] & {
+		background-image: -moz-linear-gradient(0deg, $first-color, $main-color, $main-color);
+		background-image: -webkit-gradient(0deg, $first-color, $main-color, $main-color);
+		background-image: -webkit-linear-gradient(0deg, $first-color, $main-color, $main-color);
+		background-image: -o-linear-gradient(0deg, $first-color, $main-color, $main-color);
+		background-image: -ms-linear-gradient(0deg, $first-color, $main-color, $main-color);
+		background-image: linear-gradient(0deg, $first-color, $main-color, $main-color);
+		filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#{$first-color}', endColorstr='#{$main-color}',GradientType=0 );
+    }
+    /*判断匹配*/
+    [data-theme="theme1"] & {
+		background-image: -moz-linear-gradient(0deg, $first-color1, $main-color1, $main-color1);
+		background-image: -webkit-gradient(0deg, $first-color1, $main-color1, $main-color1);
+		background-image: -webkit-linear-gradient(0deg, $first-color1, $main-color1, $main-color1);
+		background-image: -o-linear-gradient(0deg, $first-color1, $main-color1, $main-color1);
+		background-image: -ms-linear-gradient(0deg, $first-color1, $main-color1, $main-color1);
+		background-image: linear-gradient(0deg, $first-color1, $main-color1, $main-color1);
+		filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#{$first-color1}', endColorstr='#{$main-color1}',GradientType=0 );
+    }
+}
+
+/*切换边框颜色*/
+@mixin changeBorderColor($color){
+    border-color:$color;
+    /*判断匹配*/
+    [data-theme="theme"] & {
+        border-color:$main-color;
+    }
+    /*判断匹配*/
+    [data-theme="theme1"] & {
+        border-color:$main-color1;
+    }
+}
+
+/* 计算字体大小 */
+@mixin addFontSize($val){
+	font-size:$val;
+	//这里我的$size分了三种大小分别为2px,4px,6px进行差量增加，再根据不同的dpr来加载不同的css
+	[data-size="12"] & {
+		font-size:$val - $size2;
+	}
+	[data-size="14"] & {
+		font-size:$val - $size1;
+	}
+	[data-size="16"] & {
+		font-size:$val;
+	}
+	[data-size="18"] & {
+		font-size:$val + $size1;
+	}
+	[data-size="20"] & {
+		font-size:$val + $size2;
+	}
+	[data-size="22"] & {
+		font-size:$val + $size3;
+	}
+	[data-size="24"] & {
+		font-size:$val + $size2 + $size2;
+	}
+}
+
+/* 透明度处理 */
+@mixin opacity($opacity:50) {
+  -moz-opacity: $opacity / 100;
+  -webkie-opacity: $opacity / 100;
+  opacity: $opacity / 100;
+  filter: alpha(opacity=$opacity);
+}
