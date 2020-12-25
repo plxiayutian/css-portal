@@ -80,6 +80,14 @@ html{
   -webkit-box-orient:vertical;
 }
 
+.text-ellipsis-3{
+  overflow:hidden;
+  display:-webkit-box;
+  text-overflow:ellipsis;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient:vertical;
+}
+
 // *****************************修改element样式*****************************//
 
 .module-main {
