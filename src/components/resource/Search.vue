@@ -28,16 +28,16 @@
 				</div>
 			</div>
 			<div class="search-form-item div-column">
+				<div class="search-result">{{objSearchData.resultText}}</div>
 				<div class="search-sort div-column">
-					<span>排列顺序：</span>
-					<el-link :underline="false" @click="changeSortByRelevance">相关程度</el-link>
-					<el-link :underline="false" @click="changeSortByTime">发布时间</el-link>
+					<span class="search-sort-title">排列顺序：</span>
+					<el-link class="search-sort-item" :underline="false" @click="changeSortByRelevance">相关程度</el-link>
+					<el-link class="search-sort-item" :underline="false" @click="changeSortByTime">发布时间</el-link>
 					<el-radio-group class="search-sort-type" v-model="formData.searchSort" @change="changeSortType">
 						<el-radio label="sec">正序</el-radio>
 						<el-radio label="des">反序</el-radio>
 					</el-radio-group>
 				</div>
-				<div class="search-result">{{objSearchData.resultText}}</div>
 			</div>
 		</el-form>
 		<div class="search-content div-column">
@@ -353,9 +353,25 @@
 				margin-left: 80px;
 			}
 
+			/* 搜索结果数提示 */
+			.search-result {
+				height: 40px;
+				color: $font-color3;
+				font-size: 14px;
+			}
+
 			/* 排序 */
 			.search-sort {
+				margin-left: 50px;
 				height: 40px;
+
+				.search-sort-title {
+					font-weight: bold;
+				}
+				
+				.search-sort-item.active{
+					color: $first-color;
+				}
 
 				.el-link {
 					margin: 0 10px;
@@ -366,15 +382,6 @@
 				.search-sort-type {
 					margin-left: 50px;
 				}
-			}
-
-
-			/* 搜索结果数提示 */
-			.search-result {
-				height: 40px;
-				color: $font-color3;
-				font-size: 14px;
-				margin-left: 30px;
 			}
 		}
 
