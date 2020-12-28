@@ -21,9 +21,16 @@ import axios from '../../plugins/request.js'
 import VueAxios from 'vue-axios'
 Vue.use(VueAxios, axios)
 
-//引入babel-polyfill
+// 引入babel-polyfill
+// import 'babel-polyfill'
+//vue-cli4方式引用babel-polyfill
 import 'core-js/stable'
 import 'regenerator-runtime/runtime'
+// 支持使用ES6 promise对象
+import Es6Promise from 'es6-promise'
+// 用于在node或浏览器中支持ES6 与CommonJS
+require('es6-promise').polyfill()
+Es6Promise.polyfill()
 
 //引入jquery
 import $ from 'jquery'
@@ -33,7 +40,6 @@ import $ from 'jquery'
 // 引入公用方法
 import utils from '../../plugins/utils.js'
 Vue.prototype.$utils = utils
-
 
 Vue.config.productionTip = false
 

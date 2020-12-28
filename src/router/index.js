@@ -25,6 +25,16 @@ const ErrPage = resolve => {
 		resolve(require('../views/portal/errPage.vue'))
 	})
 }
+<<<<<<< HEAD
+=======
+
+// 全文检索页面
+const Search = resolve => {
+	require.ensure(['../views/portal/search.vue'], () => {
+		resolve(require('../views/portal/search.vue'))
+	})
+}
+>>>>>>> db38f3d424e485eb18adc46fb03f76a254ffcc98
 export default [{
 		path: '/',
 		redirect: '/index',
@@ -49,6 +59,14 @@ export default [{
 		path: '/errPage',
 		name: 'errPage',
 		component: ErrPage
+<<<<<<< HEAD
+=======
+	},
+	{
+		path: '/search',
+		name: 'search',
+		component: Search
+>>>>>>> db38f3d424e485eb18adc46fb03f76a254ffcc98
 	}
 	// {
 	// 	path: '*',
