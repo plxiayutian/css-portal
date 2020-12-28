@@ -1,5 +1,5 @@
 <template>
-	<div class="module-main">
+	<div class="module-main" :data-id="resourceInfo.id" :data-type="type">
 		<el-carousel height="100%" :autoplay="false">
 			<el-carousel-item v-for="item in resourceData" :key="item.id">
 				<a :href="item.url" target="_blank">
@@ -20,7 +20,7 @@
 
 <script>
 	export default {
-		props: ['moduleId', 'moduleData'],
+		props: ['moduleId', 'moduleData', 'type'],
 		name: "carousel",
 		data() {
 			return {

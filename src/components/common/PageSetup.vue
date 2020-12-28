@@ -12,21 +12,21 @@
 				<el-radio v-model="pageData.styleName" v-else :label="item.dictItemCode" @change="changeColor(item.dictItemCode)">{{item.dictItemName}}</el-radio>
 			</template>
 		</el-form-item>
-		<el-form-item label="页头">
+		<el-form-item class="page-hf" label="页头">
 			<el-switch v-model="pageData.header" @change="changeHeaderShow"></el-switch>
 		</el-form-item>
-		<el-form-item label="页脚">
+		<el-form-item class="page-hf" label="页脚">
 			<el-switch v-model="pageData.footer" @change="changeFooterShow"></el-switch>
 		</el-form-item>
-		<!-- <el-form-item label="栅格行数">
-				 <el-input-number size="small" v-model="grid.rows" :min="16" :max="999" label="请输入栅格行数"></el-input-number>
-			</el-form-item> -->
+		<el-form-item label="栅格行数">
+			<el-input-number size="small" v-model="grid.rows" :min="16" :max="999" label="请输入栅格行数"></el-input-number>
+		</el-form-item>
 	</el-form>
 </template>
 
 <script>
 	export default {
-		props: ['pageData'],
+		props: ['pageData', 'grid'],
 		name: 'PageSetup',
 		data() {
 			return {
@@ -246,11 +246,7 @@
 			color: inherit;
 		}
 
-		/deep/ .el-form-item:not(:last-child) {
-			margin-bottom: 10px;
-		}
-
-		/deep/ .el-form-item:last-child {
+		/deep/ .el-form-item {
 			margin-bottom: 0;
 		}
 	}

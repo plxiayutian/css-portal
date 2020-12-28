@@ -30,10 +30,10 @@
 
 <script>
 	// 引入自定义组件
-	// import Header from '../../components/Header.vue'
-	// import Footer from '../../components/Footer.vue'
-	// import carousel from '../../components/Carousel'
-	// import list from '../../components/List'
+	// import Header from '../../components/resource/Header.vue'
+	// import Footer from '../../components/resource/Footer.vue'
+	// import carousel from '../../components/resource/Carousel'
+	// import list from '../../components/resource/List'
 
 	// 引入js组件
 	import selectArea from '../../plugins/selectArea.js'
@@ -119,16 +119,16 @@
 		components: {
 			//组件懒加载
 			Header: resolve => {
-				require(['../../components/Header.vue'], resolve)
+				require(['../../components/resource/Header.vue'], resolve)
 			},
 			Footer: resolve => {
-				require(['../../components/Footer.vue'], resolve)
+				require(['../../components/resource/Footer.vue'], resolve)
 			},
 			carousel: resolve => {
-				require(['../../components/Carousel.vue'], resolve)
+				require(['../../components/resource/Carousel.vue'], resolve)
 			},
 			list: resolve => {
-				require(['../../components/List.vue'], resolve)
+				require(['../../components/resource/List.vue'], resolve)
 			}
 			// Header, //页头
 			// Footer, //页脚

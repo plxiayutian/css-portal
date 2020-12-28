@@ -2,11 +2,31 @@
 <template>
 	<div id="toolBar" class="toolbar">
 		<p class="now-page-name" @click="savePageDia = true" :title="pageName">{{pageName}}</p>
-		<div id="toolBox">
+		<template v-if="!isAdmin">
+			<!-- 页面设置组件 -->
+			<PageSetup :pageData="pageData" :grid="grid"></PageSetup>
+			<el-form class="module-resource" label-width="80px">
+				<el-form-item label="模块">
+					<span :class="['add-module','iconfont', isAddModule?'el-icon-close':'iconxinzeng']" size="mini" circle
+					 @click.stop.prevent="addModule" :title="isAddModule?'取消':'添加模块'"></span>
+				</el-form-item>
+				<el-form-item label="资源">
+					<span class="iconfont iconwenjianjia1" size="mini" circle @click="grid.drawer=true" title="选择资源"></span>
+				</el-form-item>
+			</el-form>
+		</template>
+		<div class="toolBox">
 			<!-- 模板来源Id不存在的时候，没有一键还原按钮 -->
-			<div class="toolItem" v-for="(item, index) in bars" :key="index" v-if="!(item.btn=='restore' && !templateId)" @click="item.clickAffair(item.name)">
-				<span class="iconfont" :class="item.icon" :title="item.name"></span>
-			</div>
+			<template v-for="(item, index) in bars" v-if="!(item.btn=='restore' && !templateId)">
+				<!-- 管理员工具栏按钮 -->
+				<div class="toolItem" v-if="isAdmin" :key="index" @click="item.clickAffair(item.name)">
+					<span class="iconfont" :class="item.icon" :title="item.name"></span>
+				</div>
+				<!-- 普通用户工具栏没有新建、清空按钮 -->
+				<div class="toolItem" v-else-if="(item.btn != 'newBuilt' && item.btn != 'cleanUp')" :key="index" @click="item.clickAffair(item.name)">
+					<span class="iconfont" :class="item.icon" :title="item.name"></span>
+				</div>
+			</template>
 		</div>
 		<!-- 我的页面弹窗 -->
 		<el-dialog :visible.sync="myPageDiaVisible" width="600px">
@@ -36,7 +56,7 @@
 		<!-- 选择模板弹窗 -->
 		<el-dialog :visible.sync="chooseMDiaVisible" width="600px">
 			<span slot="title" class="el-dialog__title">{{ dialogTitle }}</span>
-			<div class="modules ">
+			<div class="modules">
 				<template>
 					<div class="RoleModules" v-for="(itemRole,key) in roleModule" :key="key">
 						<p>角色：{{key}}</p>
@@ -82,18 +102,29 @@
 
 <script>
 	export default {
-		name: "AdminToolBar",
+		name: "ToolBar",
+		props: {
+			//页面数据
+			pageData: Object,
+			//栅格
+			grid: Object,
+			//是否新增模块
+			isAddModule: Boolean,
+			//是否是管理员工具栏
+			isAdmin: Boolean
+		},
+		// props: ['pageData', 'isAddModule'], //pageData：页面数据、isAddModule：是否新增模块
 		data() {
 			return {
 				bars: [{
 						btn: "myPage",
-						icon: "iconxitongyunweiwenjian",
+						icon: "iconxuanze2",
 						name: "我的页面",
 						clickAffair: this.myPage
 					},
 					{
 						btn: "chooseModule",
-						icon: "iconxuanze1",
+						icon: "iconbuoumaotubiao25",
 						name: "选择模板",
 						clickAffair: this.chooseModule
 					},
@@ -111,13 +142,13 @@
 					},
 					{
 						btn: "restore",
-						icon: "iconshuaxin",
+						icon: "iconhuanyuan",
 						name: "还原",
 						clickAffair: this.restore
 					},
 					{
 						btn: "preview",
-						icon: "iconyulan",
+						icon: "iconyulan1",
 						name: "预览",
 						clickAffair: this.preview
 					},
@@ -161,6 +192,12 @@
 			templateId() {
 				return this.$store.state.templateId
 			}
+		},
+		components: {
+			//页面设置部分
+			PageSetup: (resolve) => {
+				require(["./PageSetup.vue"], resolve)
+			},
 		},
 		methods: {
 			//我的页面弹窗
@@ -398,27 +435,33 @@
 				if (this.pageId) {
 					if (this.templateId) {
 						this.$confirm("是否确定还原当前页面到原模板页面？", "确定", {
-							confirmButtonText: "确认",
-							cancelButtonText: "取消",
-							type: "warning",
-						}).then(() => {
-							this.axios.put("/portal/api/pages/rollblocktemplate/" + this.pageId)
-								.then((res) => {
-									if (res.data) {
-										//设置当前页面正在编辑
-										this.$store.commit("setEditingPageState", true)
-										//初始化当前页面
-										this.$emit("initPage")
-										this.$message({
-											type: "success",
-											message: "还原成功",
-										})
-									}
+								confirmButtonText: "确认",
+								cancelButtonText: "取消",
+								type: "warning",
+							})
+							.then(() => {
+								this.axios.put("/portal/api/pages/rollblocktemplate/" + this.pageId)
+									.then((res) => {
+										if (res.data) {
+											//设置当前页面正在编辑
+											this.$store.commit("setEditingPageState", true)
+											//初始化当前页面
+											this.$emit("initPage")
+											this.$message({
+												type: "success",
+												message: "还原成功",
+											})
+										}
+									})
+									.catch((err) => {
+										console.log(err)
+									})
+							})
+							.catch(() => {
+								this.$message({
+									message: "取消还原",
 								})
-								.catch((err) => {
-									console.log(err)
-								})
-						})
+							})
 					} else {
 						this.$message({
 							type: "info",
@@ -474,6 +517,16 @@
 						console.log(err)
 					})
 			},
+			//添加模块
+			addModule(e) {
+				// 修改父组件的变量值
+				if (this.isAddModule) {
+					this.$emit('update:isAddModule', false)
+				} else {
+					//鼠标十字瞄准
+					this.$emit('update:isAddModule', true)
+				}
+			},
 		},
 	}
 </script>
@@ -489,13 +542,41 @@
 		/* 页面名称 */
 		.now-page-name {
 			display: inline-block;
-			min-width: 100px;
 			cursor: pointer;
 			margin-left: 20px;
 		}
 
+		/* 页面设置部分 */
+		/deep/>.el-form {
+			display: inline-block;
+
+			/deep/ .el-form-item {
+				display: inline-block;
+				margin-bottom: 0 !important
+			}
+
+			/deep/ .el-form-item__label {
+				color: inherit;
+			}
+		}
+
+		/* 模块和资源操作按钮 */
+		.module-resource {
+			margin-left: 20px;
+
+			span {
+				font-size: 20px;
+				cursor: pointer;
+				color: $fontColor3;
+			}
+
+			span:hover {
+				color: $subColor3;
+			}
+		}
+
 		/* 工具按钮组 */
-		#toolBox {
+		.toolBox {
 			display: flex;
 			float: right;
 
@@ -505,18 +586,22 @@
 			}
 
 			.toolItem:hover .iconfont {
-				color: #3dcd04;
+				color: $subColor3;
+				-webkit-transition: 0.2s linear;
+				-moz-transition: 0.2s linear;
+				-ms-transition: 0.2s linear;
+				-o-transition: 0.2s linear;
 				transition: 0.2s linear;
 			}
 		}
 	}
 
 	.iconfont {
-		color: #b8b8b8;
+		color: $fontColor3;
 		font-size: 20px;
 	}
 
-	/* 我也页面弹出框 */
+	/* 我的页面弹出框 */
 	.dialogWrap {
 		height: 300px;
 		overflow: auto;
@@ -527,13 +612,18 @@
 		}
 
 		.pageTitle {
-			width: 180px;
+			width: 320px;
+
+			>span {
+				margin-right: 5px;
+			}
 		}
 
 		.pageStatus {
 			width: 70px;
 			text-align: center;
 			margin-left: 0;
+			margin-right: 10px;
 		}
 
 		.noActive {
@@ -550,10 +640,10 @@
 			color: red;
 			vertical-align: middle;
 		}
-	}
 
-	.el-button {
-		margin-left: 20px;
+		.el-button {
+			margin-left: 20px;
+		}
 	}
 
 	.moduleItem {

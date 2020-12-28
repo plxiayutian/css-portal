@@ -21,14 +21,14 @@
 			</div>
 			<ul class="footer-right div-column">
 				<li>
-					<img src="../assets/images/code/EWM.png" alt="">
+					<img src="../../assets/images/code/EWM.png" alt="">
 					<p>移动客户端</p>
 				</li>
 				<li>
-					<img src="../assets/images/code/GWYXCX.jpg" alt="">
+					<img src="../../assets/images/code/GWYXCX.jpg" alt="">
 					<p>国务院小程序</p>
 				</li>
-				<!-- <li><img src="../assets/images/code/code3.png" alt=""><p>客服热线</p></li> -->
+				<!-- <li><img src="../../assets/images/code/code3.png" alt=""><p>客服热线</p></li> -->
 			</ul>
 		</div>
 	</div>
