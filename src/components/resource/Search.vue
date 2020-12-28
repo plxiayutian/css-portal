@@ -8,8 +8,16 @@
 					<el-input placeholder="请输入内容" v-model="formData.content" class="search-input" @keyup="doSearch">
 						<el-button slot="append" icon="el-icon-search" @click="doSearch"></el-button>
 					</el-input>
+					<el-link class="change-search-tool" :underline="false" @click="changeSearchTool">
+						<template v-if="showSearchTool">
+							<span class="el-icon-caret-top"></span> 收起工具
+						</template>
+						<template v-if="!showSearchTool">
+							<span class="el-icon-caret-bottom"></span> 搜索工具
+						</template>
+					</el-link>
 				</div>
-				<div class="search-form-item div-column">
+				<div v-if="showSearchTool" class="search-form-item div-column">
 					<el-radio-group class="search-radio-group" v-model="formData.searchType">
 						<el-radio label="all">全文检索</el-radio>
 						<el-radio label="title">标题检索</el-radio>
@@ -22,9 +30,9 @@
 			<div class="search-form-item div-column">
 				<div class="search-sort div-column">
 					<span>排列顺序：</span>
-					<el-link :underline="false">相关程度</el-link>
-					<el-link :underline="false">发布时间</el-link>
-					<el-radio-group class="search-sort-type" v-model="formData.searchSort">
+					<el-link :underline="false" @click="changeSortByRelevance">相关程度</el-link>
+					<el-link :underline="false" @click="changeSortByTime">发布时间</el-link>
+					<el-radio-group class="search-sort-type" v-model="formData.searchSort" @change="changeSortType">
 						<el-radio label="sec">正序</el-radio>
 						<el-radio label="des">反序</el-radio>
 					</el-radio-group>
@@ -59,7 +67,7 @@
 									<div class="search-item-content text-ellipsis-3" v-html="item.content">
 										<span>{{ item.date ? new Date(item.date).Format("yyyy.MM.dd")+ "，" :"" }}</span>{{ item.content||'' }}
 									</div>
-									<div class="search-important-news">局内要闻</div>
+									<a class="search-important-news" href="http://www.baidu.com" target="_blank">局内要闻</a>
 								</a>
 							</li>
 						</template>
@@ -237,7 +245,9 @@
 					title: "一年内"
 				}],
 				//当前选中的快捷时间
-				shortcutActive: ""
+				shortcutActive: "",
+				//搜索工具显示
+				showSearchTool: false
 			}
 		},
 		methods: {
@@ -258,6 +268,28 @@
 				this.objSearchData.arrDoc = this.objSearchData.arrDoc
 				this.objSearchData.arrInfo = this.objSearchData.arrInfo
 				this.objSearchData.arrVideo = this.objSearchData.arrVideo
+			},
+			//切换搜索工具显示方式
+			changeSearchTool() {
+				this.showSearchTool = !this.showSearchTool
+			},
+			//根据关联程度排序
+			changeSortByRelevance() {
+				this.$message({
+					type: "success",
+					message: "相关程度!"
+				})
+			},
+			//根据时间排序
+			changeSortByTime() {
+				this.$message({
+					type: "success",
+					message: "发布时间!"
+				})
+			},
+			//切换排序方式 sec(正序)、des(倒序)
+			changeSortType() {
+				console.log(this.formData.searchSort)
 			}
 		}
 	}
@@ -279,6 +311,7 @@
 			/* 搜索框 */
 			.search-input {
 				margin: 0 20px;
+				width: 600px;
 
 				/deep/ .el-input-group__append {
 					background-color: $first-color;
@@ -313,6 +346,11 @@
 				.search-date {
 					margin-left: 20px;
 				}
+			}
+
+			/* 搜索工具切换显示状态 */
+			.change-search-tool {
+				margin-left: 80px;
 			}
 
 			/* 排序 */
@@ -426,6 +464,7 @@
 
 			.search-shortcut-time {
 				width: 300px;
+				height: 200px;
 				height: max-content;
 				padding: 50px 30px;
 				background-color: rgba(242, 242, 242, 1);
